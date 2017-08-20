@@ -55,19 +55,28 @@ var Http = (function () {
             reject = _reject;
         });
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function () {
-            var status = xhr.status;
-            var isSuccess = status >= 200 && status < 300 || status === 304;
-            if (isSuccess) {
-                try {
-                    resolve(JSON.parse(xhr.responseText));
+        try {
+            xhr.open('GET', url, true);
+            xhr.onreadystatechange = function () {
+                var status = xhr.status;
+                var isSuccess = status >= 200 && status < 300 || status === 304;
+                if (isSuccess) {
+                    try {
+                        resolve(JSON.parse(xhr.responseText));
+                    }
+                    catch (e) {
+                        reject(e);
+                    }
                 }
-                catch (e) {
-                    reject(e);
+                else {
+                    reject(xhr);
                 }
-            }
-        };
+            };
+        }
+        catch (e) {
+            console.error(e);
+            reject && reject(xhr);
+        }
         return promise;
     };
     return Http;
