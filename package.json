@@ -1,0 +1,35 @@
+{
+  "name": "webapp-core",
+  "version": "0.0.1",
+  "description": "webapp",
+  "main": "index.js",
+  "scripts": {
+    "compile":"rollup -c",
+    "uglifyjs":"uglifyjs build/js/webapp-core.js > build/js/webapp-core.min.js",
+    "build":"npm run compile && npm run uglifyjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "rollup": "^0.36.3",
+    "rollup-plugin-scss": "^0.1.0",
+    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-uglify": "^1.0.1",
+    "ruby": "^0.6.1",
+    "scss": "^0.2.4",
+    "uglifycss": "0.0.27"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/h-webapp/core.git"
+  },
+  "author": "kouyjes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/h-webapp/core/issues"
+  },
+  "homepage": "https://github.com/h-webapp/core#readme",
+  "dependencies": {
+    "dom-resource-loader": "^1.0.9",
+    "injector-ioc": "^1.0.8"
+  }
+}
