@@ -25,9 +25,9 @@ class DefineCache{
 
 const defineObj = new DefineCache();
 const define = function () {
-    defineObj.define.apply(defineObj,arguments);
+    return defineObj.define.apply(defineObj,arguments);
 };
 const constant = function(){
-    defineObj.constant.apply(defineObj,arguments);
+    return defineObj.constant.apply(defineObj,arguments);
 };
 export { define,constant }

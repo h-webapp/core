@@ -39,10 +39,10 @@ var DefineCache = (function () {
 }());
 var defineObj = new DefineCache();
 var define = function () {
-    defineObj.define.apply(defineObj, arguments);
+    return defineObj.define.apply(defineObj, arguments);
 };
 var constant = function () {
-    defineObj.constant.apply(defineObj, arguments);
+    return defineObj.constant.apply(defineObj, arguments);
 };
 
 var Http = (function () {
