@@ -7,7 +7,7 @@ class Class{
             if(option[field] === void 0){
                 return;
             }
-            if(!machType || typeof this[field] === option[field]){
+            if(!machType || typeof this[field] === typeof option[field]){
                 this[field] = option[field];
             }
         });

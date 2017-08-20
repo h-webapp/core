@@ -110,7 +110,7 @@ var Class = (function () {
             if (option[field] === void 0) {
                 return;
             }
-            if (!machType || typeof _this[field] === option[field]) {
+            if (!machType || typeof _this[field] === typeof option[field]) {
                 _this[field] = option[field];
             }
         });
