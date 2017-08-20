@@ -72,6 +72,7 @@ var Http = (function () {
                     reject(xhr);
                 }
             };
+            xhr.send();
         }
         catch (e) {
             console.error(e);

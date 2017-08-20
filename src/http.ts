@@ -21,6 +21,7 @@ class Http{
                     reject(xhr);
                 }
             }
+            xhr.send();
         }catch(e){
             console.error(e);
             reject && reject(xhr);
