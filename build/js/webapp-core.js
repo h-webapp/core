@@ -45,6 +45,34 @@ var constant = function () {
     defineObj.constant.apply(defineObj, arguments);
 };
 
+var Http = (function () {
+    function Http() {
+    }
+    Http.getJSON = function (url) {
+        var resolve, reject;
+        var promise = new Promise(function (_resolve, _reject) {
+            resolve = _resolve;
+            reject = _reject;
+        });
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+            var status = xhr.status;
+            var isSuccess = status >= 200 && status < 300 || status === 304;
+            if (isSuccess) {
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                }
+                catch (e) {
+                    reject(e);
+                }
+            }
+        };
+        return promise;
+    };
+    return Http;
+}());
+
 var Location = (function () {
     function Location() {
     }
@@ -82,7 +110,7 @@ var Class = (function () {
             if (option[field] === void 0) {
                 return;
             }
-            if (!machType && typeof _this[field] === option[field]) {
+            if (!machType || typeof _this[field] === option[field]) {
                 _this[field] = option[field];
             }
         });
@@ -102,34 +130,6 @@ var Class = (function () {
 function getLanguage() {
     return constant('language');
 }
-
-var Http = (function () {
-    function Http() {
-    }
-    Http.getJSON = function (url) {
-        var resolve, reject;
-        var promise = new Promise(function (_resolve, _reject) {
-            resolve = _resolve;
-            reject = _reject;
-        });
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function () {
-            var status = xhr.status;
-            var isSuccess = status >= 200 && status < 300 || status === 304;
-            if (isSuccess) {
-                try {
-                    resolve(JSON.parse(xhr.responseText));
-                }
-                catch (e) {
-                    reject(e);
-                }
-            }
-        };
-        return promise;
-    };
-    return Http;
-}());
 
 var moduleNames = [];
 var moduleManager = new HERE.Injector();
@@ -538,6 +538,7 @@ var Register = (function () {
 
 exports.define = define;
 exports.constant = constant;
+exports.Http = Http;
 exports.Location = Location;
 exports.Module = Module;
 exports.Application = Application;
