@@ -58,6 +58,9 @@ var Http = (function () {
         try {
             xhr.open('GET', url, true);
             xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) {
+                    return;
+                }
                 var status = xhr.status;
                 var isSuccess = status >= 200 && status < 300 || status === 304;
                 if (isSuccess) {
