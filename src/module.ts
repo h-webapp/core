@@ -130,8 +130,9 @@ class Module extends HERE.Injector{
         }
         return values;
     }
-    constructor(parents){
-        super(parents);
+    constructor(){
+
+        HERE.Injector.apply(this,arguments);
 
 
         defineProperty(this,'langResource',LangResource);

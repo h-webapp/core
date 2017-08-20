@@ -3,7 +3,7 @@ declare namespace HERE{
         items();
     }
     class Injector{
-        constructor(parents?:Injector[]);
+        constructor();
         parent:Super;
         service(name,define);
         getService(name);

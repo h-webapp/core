@@ -1,6 +1,6 @@
 {
   "name": "webapp-core",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "webapp",
   "main": "index.js",
   "scripts": {

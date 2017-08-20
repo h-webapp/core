@@ -246,11 +246,11 @@ function load(module) {
 }
 var Module = (function (_super) {
     __extends(Module, _super);
-    function Module(parents) {
-        _super.call(this, parents);
+    function Module() {
         this.description = '';
         this.loaded = false;
         this._readyListeners = [];
+        HERE.Injector.apply(this, arguments);
         defineProperty(this, 'langResource', LangResource);
         defineProperty(this, 'resource', Resource);
         defineLangService(this);
@@ -379,9 +379,9 @@ var appManager = new HERE.Injector();
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {
-        _super.call(this, arguments);
         this.appName = '';
         this.route = {};
+        Module.apply(this, arguments);
     }
     Application.prototype.location = function () {
         return Location.locate(Application, this.appName);

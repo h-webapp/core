@@ -8,7 +8,7 @@ class Application extends Module{
     appName = '';
     route = {};
     constructor(){
-        super(arguments);
+        Module.apply(this,arguments);
     }
     location() {
         return Location.locate(Application,this.appName);
