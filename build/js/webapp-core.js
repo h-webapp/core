@@ -141,7 +141,7 @@ var Resource = (function (_super) {
         this.langFiles = [];
         this.jsSerial = false;
         this.cssSerial = false;
-        this.assign(['baseURI', 'js', 'jsSerial', 'cssSerial'], resource);
+        this.assign(['baseURI', 'js', 'css', 'jsSerial', 'cssSerial', 'langFiles'], resource);
     }
     return Resource;
 }(Class));

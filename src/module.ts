@@ -12,7 +12,7 @@ class Resource extends Class{
     jsSerial:Boolean = false;
     cssSerial:Boolean = false;
     constructor(resource){
-        this.assign(['baseURI','js','jsSerial','cssSerial'],resource);
+        this.assign(['baseURI','js','css','jsSerial','cssSerial','langFiles'],resource);
     }
 }
 class LangResource{
