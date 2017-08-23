@@ -257,11 +257,11 @@ function load(module) {
     });
     return p;
 }
+var LoadRequest = {};
 var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
         this.description = '';
-        this.loaded = false;
         this._readyListeners = [];
         HERE.Injector.apply(this, arguments);
         defineProperty(this, 'langResource', LangResource);
@@ -335,19 +335,54 @@ var Module = (function (_super) {
     };
     Module.prototype.load = function () {
         var _this = this;
-        var promise = new Promise(function (resolve, reject) {
-            if (_this.loaded) {
-                resolve();
-                return;
-            }
-            var p = load(_this);
-            p.then(function (result) {
-                _this.loaded = true;
-                _this.ready();
-                resolve(result);
-            }, function (e) {
-                reject(e);
+        var resolve, reject;
+        var promise = new Promise(function (_resolve, _reject) {
+            resolve = _resolve;
+            reject = _reject;
+        });
+        var request = LoadRequest[this.moduleName];
+        if (!request) {
+            request = LoadRequest[this.moduleName] = {
+                status: 0,
+                data: null,
+                calls: []
+            };
+        }
+        if (request.status === 1) {
+            resolve(request.data);
+            return promise;
+        }
+        if (request.status === 2) {
+            reject(request.data);
+            return promise;
+        }
+        request.calls.push({
+            resolve: resolve,
+            reject: reject
+        });
+        function executeCalls(calls, type, data) {
+            calls.forEach(function (call) {
+                var resolve = call[type];
+                try {
+                    resolve(data);
+                }
+                catch (err) {
+                    console.error(err);
+                }
             });
+            calls.length = 0;
+        }
+        load(this).then(function (result) {
+            var request = LoadRequest[_this.moduleName];
+            request.status = 1;
+            request.data = result;
+            _this.ready();
+            executeCalls(request.calls, 'resolve', result);
+        }, function (e) {
+            request.status = 2;
+            request.data = e;
+            console.error('module:' + _this.moduleName + ' load error !');
+            executeCalls(request.calls, 'reject', e);
         });
         return promise;
     };

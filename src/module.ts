@@ -114,10 +114,10 @@ function load(module:Module){
     });
     return p;
 }
+var LoadRequest = {};
 class Module extends HERE.Injector{
     moduleName:String;
     description = '';
-    loaded = false;
     langResource:LangResource;
     resource:Resource;
     _readyListeners:Function[] = [];
@@ -197,20 +197,56 @@ class Module extends HERE.Injector{
         });
     }
     load() {
-        var _this = this;
-        var promise = new Promise(function (resolve,reject) {
-            if(_this.loaded){
-                resolve();
-                return;
-            }
-            var p = load(_this);
-            p.then(function (result) {
-                _this.loaded = true;
-                _this.ready();
-                resolve(result);
-            }, function (e) {
-                reject(e);
+        var resolve,reject;
+        var promise = new Promise(function (_resolve,_reject) {
+            resolve = _resolve;
+            reject = _reject;
+        });
+        var request = LoadRequest[this.moduleName];
+        if(!request){
+            request = LoadRequest[this.moduleName] = {
+                status:0,
+                data:null,
+                calls:[]
+            };
+        }
+        if(request.status === 1){
+            resolve(request.data);
+            return promise;
+        }
+        if(request.status === 2){
+            reject(request.data);
+            return promise;
+        }
+
+        request.calls.push({
+            resolve:resolve,
+            reject:reject
+        });
+
+        function executeCalls(calls:any[],type:String,data){
+            calls.forEach(function (call) {
+                var resolve = call[type];
+                try{
+                    resolve(data);
+                }catch (err){
+                    console.error(err);
+                }
             });
+            calls.length = 0;
+        }
+
+        load(this).then((result) => {
+            var request = LoadRequest[this.moduleName];
+            request.status = 1;
+            request.data = result;
+            this.ready();
+            executeCalls(request.calls,'resolve',result);
+        }, (e) => {
+            request.status = 2;
+            request.data = e;
+            console.error('module:' + this.moduleName + ' load error !');
+            executeCalls(request.calls,'reject',e);
         });
         return promise;
     }
