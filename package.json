@@ -1,12 +1,12 @@
 {
   "name": "webapp-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "webapp",
   "main": "index.js",
   "scripts": {
-    "compile":"rollup -c",
-    "uglifyjs":"uglifyjs build/js/webapp-core.js > build/js/webapp-core.min.js",
-    "build":"npm run compile && npm run uglifyjs",
+    "compile": "rollup -c",
+    "uglifyjs": "uglifyjs build/js/webapp-core.js > build/js/webapp-core.min.js",
+    "build": "npm run compile && npm run uglifyjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/h-webapp/core#readme",
   "dependencies": {
-    "dom-resource-loader": "^1.0.20",
+    "dom-resource-loader": "^1.0.21",
     "injector-ioc": "^1.0.8"
   }
 }
