@@ -280,6 +280,9 @@ var Module = (function (_super) {
     Module.prototype.location = function () {
         return Location.locate(Module, this.moduleName);
     };
+    Module.prototype.getIdentifier = function () {
+        return this.moduleName;
+    };
     Module.prototype.baseURI = function () {
         var url = this.location();
         if (!url) {
@@ -333,6 +336,30 @@ var Module = (function (_super) {
             });
         });
     };
+    Module.executeCalls = function (module, type, data) {
+        var request = LoadRequest[module.getIdentifier()];
+        request.data = data;
+        if (type === 'resolve') {
+            request.status = 1;
+        }
+        else if (type === 'reject') {
+            request.status = 2;
+            console.error('load : ' + module.getIdentifier() + '  error !');
+        }
+        if (type === 'resolve') {
+            module.ready();
+        }
+        request.calls.forEach(function (call) {
+            var fn = call[type];
+            try {
+                fn(data);
+            }
+            catch (err) {
+                console.error(err);
+            }
+        });
+        request.calls.length = 0;
+    };
     Module.prototype.load = function () {
         var _this = this;
         var resolve = null, reject = null;
@@ -340,9 +367,9 @@ var Module = (function (_super) {
             resolve = _resolve;
             reject = _reject;
         });
-        var request = LoadRequest[this.moduleName];
+        var request = LoadRequest[this.getIdentifier()];
         if (!request) {
-            request = LoadRequest[this.moduleName] = {
+            request = LoadRequest[this.getIdentifier()] = {
                 status: 0,
                 data: null,
                 calls: []
@@ -360,29 +387,10 @@ var Module = (function (_super) {
             resolve: resolve,
             reject: reject
         });
-        function executeCalls(calls, type, data) {
-            calls.forEach(function (call) {
-                var fn = call[type];
-                try {
-                    fn(data);
-                }
-                catch (err) {
-                    console.error(err);
-                }
-            });
-            calls.length = 0;
-        }
         load(this).then(function (result) {
-            var request = LoadRequest[_this.moduleName];
-            request.status = 1;
-            request.data = result;
-            _this.ready();
-            executeCalls(request.calls, 'resolve', result);
+            Module.executeCalls(_this, 'resolve', result);
         }, function (e) {
-            request.status = 2;
-            request.data = e;
-            console.error('module:' + _this.moduleName + ' load error !');
-            executeCalls(request.calls, 'reject', e);
+            Module.executeCalls(_this, 'reject', e);
         });
         return promise;
     };
@@ -433,6 +441,9 @@ var Application = (function (_super) {
     }
     Application.prototype.location = function () {
         return Location.locate(Application, this.appName);
+    };
+    Application.prototype.getIdentifier = function () {
+        return this.appName;
     };
     Application.apps = function () {
         return appNames.map(function (name) {

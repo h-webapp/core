@@ -13,6 +13,9 @@ class Application extends Module{
     location() {
         return Location.locate(Application,this.appName);
     }
+    getIdentifier(){
+        return this.appName;
+    }
     static apps () {
         return appNames.map(function (name) {
             return Application.app(name);
