@@ -1,6 +1,6 @@
 {
   "name": "webapp-core",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "webapp",
   "main": "index.js",
   "scripts": {
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/h-webapp/core#readme",
   "dependencies": {
-    "dom-resource-loader": "^1.0.22",
+    "dom-resource-loader": "^1.0.23",
     "injector-ioc": "^1.0.8"
   }
 }
