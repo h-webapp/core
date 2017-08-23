@@ -335,7 +335,7 @@ var Module = (function (_super) {
     };
     Module.prototype.load = function () {
         var _this = this;
-        var resolve, reject;
+        var resolve = null, reject = null;
         var promise = new Promise(function (_resolve, _reject) {
             resolve = _resolve;
             reject = _reject;
@@ -362,9 +362,9 @@ var Module = (function (_super) {
         });
         function executeCalls(calls, type, data) {
             calls.forEach(function (call) {
-                var resolve = call[type];
+                var fn = call[type];
                 try {
-                    resolve(data);
+                    fn(data);
                 }
                 catch (err) {
                     console.error(err);

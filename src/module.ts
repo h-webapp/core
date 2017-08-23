@@ -197,7 +197,7 @@ class Module extends HERE.Injector{
         });
     }
     load() {
-        var resolve,reject;
+        var resolve = null,reject = null;
         var promise = new Promise(function (_resolve,_reject) {
             resolve = _resolve;
             reject = _reject;
@@ -226,9 +226,9 @@ class Module extends HERE.Injector{
 
         function executeCalls(calls:any[],type:String,data){
             calls.forEach(function (call) {
-                var resolve = call[type];
+                var fn = call[type];
                 try{
-                    resolve(data);
+                    fn(data);
                 }catch (err){
                     console.error(err);
                 }
