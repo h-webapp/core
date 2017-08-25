@@ -1,7 +1,8 @@
 import { Location } from './location';
 import { Class } from './clazz';
 import { getLanguage } from './i18n';
-import { Http } from './http';
+import ResourceLoader = HERE.ResourceLoader;
+import ResourceLoader = HERE.ResourceLoader;
 var moduleNames = [];
 var moduleManager = new HERE.Injector();
 class Resource extends Class{
@@ -186,8 +187,11 @@ class Module extends HERE.Injector{
         var _resource = this.resource;
         return Promise.all(_resource.langFiles.map(function (file) {
             var url = module.parseUrl(parseLangFile(file));
-            return Http.getJSON(url).then(function (data) {
-                return data;
+            return ResourceLoader.load({
+                type:'json',
+                urls:[url]
+            }).then(function (jsonArray) {
+                return jsonArray[0];
             }, function () {
                 console.error('lang file : ' + url + ' load error !');
             });
@@ -222,6 +226,12 @@ class Module extends HERE.Injector{
             }
         });
         request.calls.length = 0;
+    }
+    loadResource(resources){
+        var loader = new ResourceLoader({
+            baseURI:this.baseURI()
+        });
+        return loader.load.apply(loader,arguments);
     }
     load() {
         var resolve = null,reject = null;
