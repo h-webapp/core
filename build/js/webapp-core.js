@@ -114,7 +114,7 @@ var Resource = (function (_super) {
         this.langFiles = [];
         this.jsSerial = false;
         this.cssSerial = false;
-        this.assign(['baseURI', 'js', 'css', 'jsSerial', 'cssSerial', 'langFiles'], resource);
+        this.assign(['js', 'css', 'jsSerial', 'cssSerial', 'langFiles'], resource);
     }
     return Resource;
 }(Class));
@@ -207,7 +207,7 @@ function load(module) {
             promises.push(m.load());
         });
     }
-    var loader = new HERE.ResourceLoader({
+    var loader = new ResourceLoader({
         baseURI: module.baseURI()
     });
     promises.push(module.loadLangResource());
@@ -399,8 +399,9 @@ var Module = (function (_super) {
     return Module;
 }(HERE.Injector));
 
+var Injector = HERE.Injector;
 var appNames = [];
-var appManager = new HERE.Injector();
+var appManager = new Injector;
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {

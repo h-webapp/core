@@ -2,18 +2,16 @@ import { Location } from './location';
 import { Class } from './clazz';
 import { getLanguage } from './i18n';
 import ResourceLoader = HERE.ResourceLoader;
-import ResourceLoader = HERE.ResourceLoader;
 var moduleNames = [];
 var moduleManager = new HERE.Injector();
 class Resource extends Class{
-    baseURI:String;
     js:String[] = [];
     css:String[] = [];
     langFiles:String[] = [];
     jsSerial:Boolean = false;
     cssSerial:Boolean = false;
     constructor(resource){
-        this.assign(['baseURI','js','css','jsSerial','cssSerial','langFiles'],resource);
+        this.assign(['js','css','jsSerial','cssSerial','langFiles'],resource);
     }
 }
 class LangResource{
@@ -105,7 +103,7 @@ function load(module:Module){
             promises.push(m.load());
         });
     }
-    var loader = new HERE.ResourceLoader({
+    var loader = new ResourceLoader({
         baseURI:module.baseURI()
     });
     promises.push(module.loadLangResource());

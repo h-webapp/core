@@ -1,9 +1,8 @@
 import { Module } from './module';
 import { Location } from './location';
-
-
+import Injector = HERE.Injector;
 var appNames = [];
-var appManager = new HERE.Injector();
+var appManager = new Injector;
 class Application extends Module{
     appName = '';
     route = {};
