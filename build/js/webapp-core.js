@@ -483,7 +483,7 @@ function defineDeclares(object, name) {
             _declares = declares.map(function (declare) {
                 var d = new Declare(declare);
                 if (_declareMap[d.name]) {
-                    throw new Error(name + ' : more than one declare : ' + d.name + ' found !');
+                    throw new Error(d.name + ' : more than one declare : ' + d.name + ' found !');
                 }
                 _declareMap[d.name] = true;
                 return d;
