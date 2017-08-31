@@ -2,6 +2,7 @@ import { Location } from './location';
 import { Class } from './clazz';
 import { getLanguage } from './i18n';
 import ResourceLoader = HERE.ResourceLoader;
+import ResourceUrl = HERE.ResourceUrl;
 import Injector = HERE.Injector;
 
 var moduleNames = [];
@@ -177,7 +178,7 @@ class Module extends Injector{
     }
     constructor(){
 
-        HERE.Injector.apply(this,arguments);
+        Injector.apply(this,arguments);
 
 
         defineProperty(this,'langResource',LangResource);
@@ -208,7 +209,7 @@ class Module extends Injector{
         return '';
     }
     parseUrl(url) {
-        return HERE.ResourceUrl.parseUrl(this.baseURI(),url);
+        return ResourceUrl.parseUrl(this.baseURI(),url);
     }
     getLangText(key,defaultValue) {
         return getLangText(this,key,defaultValue);

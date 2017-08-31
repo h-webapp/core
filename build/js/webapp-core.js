@@ -104,6 +104,7 @@ function getLanguage() {
 }
 
 var ResourceLoader = HERE.ResourceLoader;
+var ResourceUrl = HERE.ResourceUrl;
 var Injector = HERE.Injector;
 var moduleNames = [];
 var moduleManager = new Injector();
@@ -246,7 +247,7 @@ var Module = (function (_super) {
     function Module() {
         this.description = '';
         this._readyListeners = [];
-        HERE.Injector.apply(this, arguments);
+        Injector.apply(this, arguments);
         defineProperty(this, 'langResource', LangResource);
         defineProperty(this, 'resource', Resource);
         defineLangService(this);
@@ -305,7 +306,7 @@ var Module = (function (_super) {
         return '';
     };
     Module.prototype.parseUrl = function (url) {
-        return HERE.ResourceUrl.parseUrl(this.baseURI(), url);
+        return ResourceUrl.parseUrl(this.baseURI(), url);
     };
     Module.prototype.getLangText = function (key, defaultValue) {
         return getLangText(this, key, defaultValue);
