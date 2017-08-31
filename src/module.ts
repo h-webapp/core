@@ -118,13 +118,15 @@ function load(module:Module){
 }
 var LoadRequest = {};
 var ModuleRegister = {};
-function location(name,url){
+function validLocation(name,url){
     if(!url){
         throw new TypeError('url "' + url + '" is invalid !')
     }
     if(ModuleRegister[name] && ModuleRegister[name] !== url){
         throw new Error('module "' + name + '" has been located !');
     }
+}
+function location(name,url){
     ModuleRegister[name] = url;
 }
 function initModuleDeclare(declares){
@@ -136,7 +138,7 @@ function initModuleDeclare(declares){
         if(typeof _declare.url !== 'string'){
             throw new TypeError('url of module "' + _declare.name + '" is invalid !');
         }
-        location(_declare.name,_declare.url);
+        validLocation(_declare.name,_declare.url);
     });
 }
 class Module extends Injector{
@@ -169,6 +171,7 @@ class Module extends Injector{
         initModuleDeclare(declares);
 
         var urls = declares.map(function (_declare) {
+            location(_declare.name,_declare.url);
             return _declare.url;
         });
         return ResourceLoader.load({
@@ -353,4 +356,4 @@ class Module extends Injector{
     }
 }
 
-export { Module,location }
+export { Module,location,validLocation }

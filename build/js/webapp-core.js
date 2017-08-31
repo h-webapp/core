@@ -221,13 +221,15 @@ function load(module) {
 }
 var LoadRequest = {};
 var ModuleRegister = {};
-function location(name, url) {
+function validLocation(name, url) {
     if (!url) {
         throw new TypeError('url "' + url + '" is invalid !');
     }
     if (ModuleRegister[name] && ModuleRegister[name] !== url) {
         throw new Error('module "' + name + '" has been located !');
     }
+}
+function location(name, url) {
     ModuleRegister[name] = url;
 }
 function initModuleDeclare(declares) {
@@ -239,7 +241,7 @@ function initModuleDeclare(declares) {
         if (typeof _declare.url !== 'string') {
             throw new TypeError('url of module "' + _declare.name + '" is invalid !');
         }
-        location(_declare.name, _declare.url);
+        validLocation(_declare.name, _declare.url);
     });
 }
 var Module = (function (_super) {
@@ -277,6 +279,7 @@ var Module = (function (_super) {
         }
         initModuleDeclare(declares);
         var urls = declares.map(function (_declare) {
+            location(_declare.name, _declare.url);
             return _declare.url;
         });
         return ResourceLoader.load({
@@ -455,13 +458,15 @@ var ResourceLoader$1 = HERE.ResourceLoader;
 var appNames = [];
 var appManager = new Injector$1;
 var ApplicationRegister = {};
-function location$1(name, url) {
+function validLocation$1(name, url) {
     if (!url) {
         throw new TypeError('url "' + url + '" is invalid !');
     }
     if (ApplicationRegister[name] && ApplicationRegister[name] !== url) {
         throw new Error('application "' + name + '" has been located !');
     }
+}
+function location$1(name, url) {
     ApplicationRegister[name] = url;
 }
 function initAppDeclare(declares) {
@@ -473,7 +478,7 @@ function initAppDeclare(declares) {
         if (typeof _declare.url !== 'string') {
             throw new TypeError('url of application "' + _declare.name + '" is invalid !');
         }
-        location$1(_declare.name, _declare.url);
+        validLocation$1(_declare.name, _declare.url);
     });
 }
 var Application = (function (_super) {
@@ -500,6 +505,7 @@ var Application = (function (_super) {
         }
         initAppDeclare(declares);
         var urls = declares.map(function (_declare) {
+            location$1(_declare.name, _declare.url);
             return _declare.url;
         });
         return ResourceLoader$1.load({
@@ -624,6 +630,12 @@ var Register = (function () {
     };
     Register.prototype.register = function () {
         var _this = this;
+        this.modules.forEach(function (declare) {
+            validLocation(declare.name, declare.url);
+        });
+        this.apps.forEach(function (declare) {
+            validLocation$1(declare.name, declare.url);
+        });
         var urls = [];
         this.modules.forEach(function (declare) {
             location(declare.name, declare.url);

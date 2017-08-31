@@ -6,13 +6,15 @@ import ResourceLoader = HERE.ResourceLoader;
 var appNames = [];
 var appManager = new Injector;
 var ApplicationRegister = {};
-function location(name,url){
+function validLocation(name,url){
     if(!url){
         throw new TypeError('url "' + url + '" is invalid !')
     }
     if(ApplicationRegister[name] && ApplicationRegister[name] !== url){
         throw new Error('application "' + name + '" has been located !');
     }
+}
+function location(name,url){
     ApplicationRegister[name] = url;
 }
 function initAppDeclare(declares){
@@ -24,7 +26,7 @@ function initAppDeclare(declares){
         if(typeof _declare.url !== 'string'){
             throw new TypeError('url of application "' + _declare.name + '" is invalid !');
         }
-        location(_declare.name,_declare.url);
+        validLocation(_declare.name,_declare.url);
     });
 }
 class Application extends Module{
@@ -49,6 +51,7 @@ class Application extends Module{
         initAppDeclare(declares);
 
         var urls = declares.map(function (_declare) {
+            location(_declare.name,_declare.url);
             return _declare.url;
         });
         return ResourceLoader.load({
@@ -104,4 +107,4 @@ class Application extends Module{
     }
 }
 
-export { Application,location }
+export { Application,location,validLocation }
