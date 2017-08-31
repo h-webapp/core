@@ -1,16 +1,42 @@
 import { Module } from './module';
 import { Location } from './location';
 import Injector = HERE.Injector;
+import ResourceLoader = HERE.ResourceLoader;
+
 var appNames = [];
 var appManager = new Injector;
+var ApplicationRegister = {};
 class Application extends Module{
     appName = '';
     route = {};
     constructor(){
         Module.apply(this,arguments);
     }
+    static location(name,url){
+        if(!url){
+            throw new TypeError('url "' + url + '" is invalid !')
+        }
+        if(ApplicationRegister[name] && ApplicationRegister[name] !== url){
+            throw new Error('application "' + name + '" has been located !');
+        }
+        ApplicationRegister[name] = url;
+    }
+    static register(name,url){
+        if(appNames.indexOf(name) >= 0){
+            throw new Error('application "' + name + '" has been registered !');
+        }
+        Application.location(name,url);
+        return ResourceLoader.load({
+            type:'js',
+            urls:[url]
+        });
+    }
     location() {
-        return Location.locate(Application,this.appName);
+        var url =  ApplicationRegister[this.appName];
+        if(!url){
+            throw new Error('application "' + this.appName + '"  not be registered !');
+        }
+        return url;
     }
     getIdentifier(){
         return this.appName;

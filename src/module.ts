@@ -2,8 +2,10 @@ import { Location } from './location';
 import { Class } from './clazz';
 import { getLanguage } from './i18n';
 import ResourceLoader = HERE.ResourceLoader;
+import Injector = HERE.Injector;
+
 var moduleNames = [];
-var moduleManager = new HERE.Injector();
+var moduleManager = new Injector();
 class Resource extends Class{
     js:String[] = [];
     css:String[] = [];
@@ -114,7 +116,8 @@ function load(module:Module){
     return p;
 }
 var LoadRequest = {};
-class Module extends HERE.Injector{
+var ModuleRegister = {};
+class Module extends Injector{
     moduleName:String;
     description = '';
     langResource:LangResource;
@@ -129,6 +132,25 @@ class Module extends HERE.Injector{
         }
         return values;
     }
+    static location(name,url){
+        if(!url){
+            throw new TypeError('url "' + url + '" is invalid !')
+        }
+        if(ModuleRegister[name] && ModuleRegister[name] !== url){
+            throw new Error('module "' + name + '" has been located !');
+        }
+        ModuleRegister[name] = url;
+    }
+    static register(name,url){
+        if(moduleNames.indexOf(name) >= 0){
+            throw new Error('module "' + name + '" has been registered !');
+        }
+        Module.location(name,url);
+        return ResourceLoader.load({
+            type:'js',
+            urls:[url]
+        });
+    }
     constructor(){
 
         HERE.Injector.apply(this,arguments);
@@ -141,7 +163,11 @@ class Module extends HERE.Injector{
         defineLangService(this);
     }
     location() {
-        return Location.locate(Module,this.moduleName);
+        var url =  ModuleRegister[this.moduleName];
+        if(!url){
+            throw new Error('module "' + this.moduleName + '"  not be registered !');
+        }
+        return url;
     }
     getIdentifier(){
         return this.moduleName;

@@ -1,7 +1,7 @@
 import { Class } from './clazz';
-import { Location } from './location';
 import { Module } from './module';
 import { Application } from './application';
+import ResourceLoader = HERE.ResourceLoader;
 
 class Declare extends Class{
     name = '';
@@ -15,6 +15,11 @@ class Declare extends Class{
             throw new Error('param "url" field is invalid !');
         }
     }
+}
+interface Resource{
+    type:String;
+    urls:String[];
+    dependence:Resource;
 }
 function defineDeclares(object,name){
     var _declares = [];
@@ -44,9 +49,10 @@ function defineDeclares(object,name){
 }
 var creating = false,instance = null;
 class Register{
+    preLoadResource:Resource;
+    afterLoadResource:Resource;
     modules:Declare[];
     apps:Declare[];
-    main = '';
     constructor(){
         if(!creating){
             throw new Error('constructor is private !');
@@ -63,38 +69,20 @@ class Register{
         creating = false;
         return instance;
     }
-    registerModule(declare) {
+    addModule(declare) {
         this.modules.push(new Declare(declare));
     }
-    unRegisterModule(declare) {
-        var name = declare.name;
-        var modules = this.modules.filter(function (m) {
-            return m.name !== name;
-        });
-        if(modules.length !== this.modules.length){
-            this.modules = modules;
-        }
-    }
-    registerApp(declare) {
+    addApp(declare) {
         this.apps.push(new Declare(declare));
     }
-    unRegisterApp(declare) {
-        var name = declare.name;
-        var apps = this.apps.filter(function (m) {
-            return m.name !== name;
-        });
-        if(apps.length !== this.apps.length){
-            this.apps = apps;
-        }
-    }
-    load() {
+    register() {
         var urls = [];
         this.modules.forEach(function (declare) {
-            Location.locate(Module,declare.name,declare.url);
+            Module.location(declare.name,declare.url);
             urls.push(declare.url);
         });
         this.apps.forEach(function (declare) {
-            Location.locate(Application,declare.name,declare.url);
+            Application.location(declare.name,declare.url);
             urls.push(declare.url);
         });
 
@@ -102,15 +90,24 @@ class Register{
             type:'js',
             urls:urls
         };
-        var mainResource = {
-            type:'js',
-            urls:[],
-            dependence:resource
-        };
-        if(this.main){
-            mainResource.urls.push(this.main);
+
+        var promise:Promise = null;
+        if(this.preLoadResource){
+            promise = ResourceLoader.load(this.preLoadResource);
         }
-        return HERE.ResourceLoader.load(mainResource);
+        if(promise){
+            promise = promise.then(function () {
+                return ResourceLoader.load(resource);
+            });
+        }else{
+            promise = ResourceLoader.load(resource);
+        }
+        if(this.afterLoadResource){
+            promise = promise.then(() => {
+                return ResourceLoader.load(this.afterLoadResource);
+            });
+        }
+        return promise;
 
     }
 }

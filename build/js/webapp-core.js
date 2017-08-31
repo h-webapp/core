@@ -104,8 +104,9 @@ function getLanguage() {
 }
 
 var ResourceLoader = HERE.ResourceLoader;
+var Injector = HERE.Injector;
 var moduleNames = [];
-var moduleManager = new HERE.Injector();
+var moduleManager = new Injector();
 var Resource = (function (_super) {
     __extends(Resource, _super);
     function Resource(resource) {
@@ -218,6 +219,7 @@ function load(module) {
     return p;
 }
 var LoadRequest = {};
+var ModuleRegister = {};
 var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
@@ -237,8 +239,31 @@ var Module = (function (_super) {
         }
         return values;
     };
+    Module.location = function (name, url) {
+        if (!url) {
+            throw new TypeError('url "' + url + '" is invalid !');
+        }
+        if (ModuleRegister[name] && ModuleRegister[name] !== url) {
+            throw new Error('module "' + name + '" has been located !');
+        }
+        ModuleRegister[name] = url;
+    };
+    Module.register = function (name, url) {
+        if (moduleNames.indexOf(name) >= 0) {
+            throw new Error('module "' + name + '" has been registered !');
+        }
+        Module.location(name, url);
+        return ResourceLoader.load({
+            type: 'js',
+            urls: [url]
+        });
+    };
     Module.prototype.location = function () {
-        return Location.locate(Module, this.moduleName);
+        var url = ModuleRegister[this.moduleName];
+        if (!url) {
+            throw new Error('module "' + this.moduleName + '"  not be registered !');
+        }
+        return url;
     };
     Module.prototype.getIdentifier = function () {
         return this.moduleName;
@@ -397,11 +422,13 @@ var Module = (function (_super) {
         return Module;
     };
     return Module;
-}(HERE.Injector));
+}(Injector));
 
-var Injector = HERE.Injector;
+var Injector$1 = HERE.Injector;
+var ResourceLoader$1 = HERE.ResourceLoader;
 var appNames = [];
-var appManager = new Injector;
+var appManager = new Injector$1;
+var ApplicationRegister = {};
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {
@@ -409,8 +436,31 @@ var Application = (function (_super) {
         this.route = {};
         Module.apply(this, arguments);
     }
+    Application.location = function (name, url) {
+        if (!url) {
+            throw new TypeError('url "' + url + '" is invalid !');
+        }
+        if (ApplicationRegister[name] && ApplicationRegister[name] !== url) {
+            throw new Error('application "' + name + '" has been located !');
+        }
+        ApplicationRegister[name] = url;
+    };
+    Application.register = function (name, url) {
+        if (appNames.indexOf(name) >= 0) {
+            throw new Error('application "' + name + '" has been registered !');
+        }
+        Application.location(name, url);
+        return ResourceLoader$1.load({
+            type: 'js',
+            urls: [url]
+        });
+    };
     Application.prototype.location = function () {
-        return Location.locate(Application, this.appName);
+        var url = ApplicationRegister[this.appName];
+        if (!url) {
+            throw new Error('application "' + this.appName + '"  not be registered !');
+        }
+        return url;
     };
     Application.prototype.getIdentifier = function () {
         return this.appName;
@@ -454,6 +504,7 @@ var Application = (function (_super) {
     return Application;
 }(Module));
 
+var ResourceLoader$2 = HERE.ResourceLoader;
 var Declare = (function (_super) {
     __extends(Declare, _super);
     function Declare(declare) {
@@ -498,7 +549,6 @@ var creating = false;
 var instance = null;
 var Register = (function () {
     function Register() {
-        this.main = '';
         if (!creating) {
             throw new Error('constructor is private !');
         }
@@ -514,53 +564,45 @@ var Register = (function () {
         creating = false;
         return instance;
     };
-    Register.prototype.registerModule = function (declare) {
+    Register.prototype.addModule = function (declare) {
         this.modules.push(new Declare(declare));
     };
-    Register.prototype.unRegisterModule = function (declare) {
-        var name = declare.name;
-        var modules = this.modules.filter(function (m) {
-            return m.name !== name;
-        });
-        if (modules.length !== this.modules.length) {
-            this.modules = modules;
-        }
-    };
-    Register.prototype.registerApp = function (declare) {
+    Register.prototype.addApp = function (declare) {
         this.apps.push(new Declare(declare));
     };
-    Register.prototype.unRegisterApp = function (declare) {
-        var name = declare.name;
-        var apps = this.apps.filter(function (m) {
-            return m.name !== name;
-        });
-        if (apps.length !== this.apps.length) {
-            this.apps = apps;
-        }
-    };
-    Register.prototype.load = function () {
+    Register.prototype.register = function () {
+        var _this = this;
         var urls = [];
         this.modules.forEach(function (declare) {
-            Location.locate(Module, declare.name, declare.url);
+            Module.location(declare.name, declare.url);
             urls.push(declare.url);
         });
         this.apps.forEach(function (declare) {
-            Location.locate(Application, declare.name, declare.url);
+            Application.location(declare.name, declare.url);
             urls.push(declare.url);
         });
         var resource = {
             type: 'js',
             urls: urls
         };
-        var mainResource = {
-            type: 'js',
-            urls: [],
-            dependence: resource
-        };
-        if (this.main) {
-            mainResource.urls.push(this.main);
+        var promise = null;
+        if (this.preLoadResource) {
+            promise = ResourceLoader$2.load(this.preLoadResource);
         }
-        return HERE.ResourceLoader.load(mainResource);
+        if (promise) {
+            promise = promise.then(function () {
+                return ResourceLoader$2.load(resource);
+            });
+        }
+        else {
+            promise = ResourceLoader$2.load(resource);
+        }
+        if (this.afterLoadResource) {
+            promise = promise.then(function () {
+                return ResourceLoader$2.load(_this.afterLoadResource);
+            });
+        }
+        return promise;
     };
     return Register;
 }());
