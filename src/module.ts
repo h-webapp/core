@@ -117,6 +117,27 @@ function load(module:Module){
 }
 var LoadRequest = {};
 var ModuleRegister = {};
+function location(name,url){
+    if(!url){
+        throw new TypeError('url "' + url + '" is invalid !')
+    }
+    if(ModuleRegister[name] && ModuleRegister[name] !== url){
+        throw new Error('module "' + name + '" has been located !');
+    }
+    ModuleRegister[name] = url;
+}
+function initModuleDeclare(declares){
+    declares.forEach(function (_declare) {
+        if(moduleNames.indexOf(_declare.name) >= 0){
+            throw new Error('module "' + _declare.name + '" has been registered !');
+        }
+        _declare['url'] = _declare.url || ModuleRegister[_declare.name];
+        if(typeof _declare.url !== 'string'){
+            throw new TypeError('url of module "' + _declare.name + '" is invalid !');
+        }
+        location(_declare.name,_declare.url);
+    });
+}
 class Module extends Injector{
     moduleName:String;
     description = '';
@@ -132,23 +153,26 @@ class Module extends Injector{
         }
         return values;
     }
-    static location(name,url){
-        if(!url){
-            throw new TypeError('url "' + url + '" is invalid !')
-        }
-        if(ModuleRegister[name] && ModuleRegister[name] !== url){
-            throw new Error('module "' + name + '" has been located !');
-        }
-        ModuleRegister[name] = url;
-    }
     static register(name,url){
-        if(moduleNames.indexOf(name) >= 0){
-            throw new Error('module "' + name + '" has been registered !');
+        var declares = [];
+        if(typeof name === 'string'){
+            declares.push({
+                name:name,
+                url:url
+            });
+        }else if(name instanceof Array){
+            declares = declares.concat(name);
+        }else if(typeof name === 'object'){
+            declares.push(name);
         }
-        Module.location(name,url);
+        initModuleDeclare(declares);
+
+        var urls = declares.map(function (_declare) {
+            return _declare.url;
+        });
         return ResourceLoader.load({
             type:'js',
-            urls:[url]
+            urls:urls
         });
     }
     constructor(){
@@ -258,7 +282,7 @@ class Module extends Injector{
         return loader.load.apply(loader,arguments);
     }
     load() {
-        var resolve = null,reject = null;
+        var resolve:Function = null,reject:Function = null;
         var promise = new Promise(function (_resolve,_reject) {
             resolve = _resolve;
             reject = _reject;
@@ -328,4 +352,4 @@ class Module extends Injector{
     }
 }
 
-export { Module }
+export { Module,location }

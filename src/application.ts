@@ -6,29 +6,54 @@ import ResourceLoader = HERE.ResourceLoader;
 var appNames = [];
 var appManager = new Injector;
 var ApplicationRegister = {};
+function location(name,url){
+    if(!url){
+        throw new TypeError('url "' + url + '" is invalid !')
+    }
+    if(ApplicationRegister[name] && ApplicationRegister[name] !== url){
+        throw new Error('application "' + name + '" has been located !');
+    }
+    ApplicationRegister[name] = url;
+}
+function initAppDeclare(declares){
+    declares.forEach(function (_declare) {
+        if(appNames.indexOf(_declare.name) >= 0){
+            throw new Error('application "' + _declare.name + '" has been registered !');
+        }
+        _declare['url'] = _declare.url || ApplicationRegister[_declare.name];
+        if(typeof _declare.url !== 'string'){
+            throw new TypeError('url of application "' + _declare.name + '" is invalid !');
+        }
+        location(_declare.name,_declare.url);
+    });
+}
 class Application extends Module{
     appName = '';
     route = {};
     constructor(){
         Module.apply(this,arguments);
     }
-    static location(name,url){
-        if(!url){
-            throw new TypeError('url "' + url + '" is invalid !')
-        }
-        if(ApplicationRegister[name] && ApplicationRegister[name] !== url){
-            throw new Error('application "' + name + '" has been located !');
-        }
-        ApplicationRegister[name] = url;
-    }
     static register(name,url){
-        if(appNames.indexOf(name) >= 0){
-            throw new Error('application "' + name + '" has been registered !');
+        var declares = [];
+        if(typeof name === 'string'){
+            url = url || ApplicationRegister[name];
+            declares.push({
+                name:name,
+                url:url
+            });
+        }else if(name instanceof Array){
+            declares = declares.concat(name);
+        }else if(typeof name === 'object'){
+            declares.push(name);
         }
-        Application.location(name,url);
+        initAppDeclare(declares);
+
+        var urls = declares.map(function (_declare) {
+            return _declare.url;
+        });
         return ResourceLoader.load({
             type:'js',
-            urls:[url]
+            urls:urls
         });
     }
     location() {
@@ -79,4 +104,4 @@ class Application extends Module{
     }
 }
 
-export { Application }
+export { Application,location }

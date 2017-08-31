@@ -220,6 +220,27 @@ function load(module) {
 }
 var LoadRequest = {};
 var ModuleRegister = {};
+function location(name, url) {
+    if (!url) {
+        throw new TypeError('url "' + url + '" is invalid !');
+    }
+    if (ModuleRegister[name] && ModuleRegister[name] !== url) {
+        throw new Error('module "' + name + '" has been located !');
+    }
+    ModuleRegister[name] = url;
+}
+function initModuleDeclare(declares) {
+    declares.forEach(function (_declare) {
+        if (moduleNames.indexOf(_declare.name) >= 0) {
+            throw new Error('module "' + _declare.name + '" has been registered !');
+        }
+        _declare['url'] = _declare.url || ModuleRegister[_declare.name];
+        if (typeof _declare.url !== 'string') {
+            throw new TypeError('url of module "' + _declare.name + '" is invalid !');
+        }
+        location(_declare.name, _declare.url);
+    });
+}
 var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
@@ -239,23 +260,27 @@ var Module = (function (_super) {
         }
         return values;
     };
-    Module.location = function (name, url) {
-        if (!url) {
-            throw new TypeError('url "' + url + '" is invalid !');
-        }
-        if (ModuleRegister[name] && ModuleRegister[name] !== url) {
-            throw new Error('module "' + name + '" has been located !');
-        }
-        ModuleRegister[name] = url;
-    };
     Module.register = function (name, url) {
-        if (moduleNames.indexOf(name) >= 0) {
-            throw new Error('module "' + name + '" has been registered !');
+        var declares = [];
+        if (typeof name === 'string') {
+            declares.push({
+                name: name,
+                url: url
+            });
         }
-        Module.location(name, url);
+        else if (name instanceof Array) {
+            declares = declares.concat(name);
+        }
+        else if (typeof name === 'object') {
+            declares.push(name);
+        }
+        initModuleDeclare(declares);
+        var urls = declares.map(function (_declare) {
+            return _declare.url;
+        });
         return ResourceLoader.load({
             type: 'js',
-            urls: [url]
+            urls: urls
         });
     };
     Module.prototype.location = function () {
@@ -429,6 +454,27 @@ var ResourceLoader$1 = HERE.ResourceLoader;
 var appNames = [];
 var appManager = new Injector$1;
 var ApplicationRegister = {};
+function location$1(name, url) {
+    if (!url) {
+        throw new TypeError('url "' + url + '" is invalid !');
+    }
+    if (ApplicationRegister[name] && ApplicationRegister[name] !== url) {
+        throw new Error('application "' + name + '" has been located !');
+    }
+    ApplicationRegister[name] = url;
+}
+function initAppDeclare(declares) {
+    declares.forEach(function (_declare) {
+        if (appNames.indexOf(_declare.name) >= 0) {
+            throw new Error('application "' + _declare.name + '" has been registered !');
+        }
+        _declare['url'] = _declare.url || ApplicationRegister[_declare.name];
+        if (typeof _declare.url !== 'string') {
+            throw new TypeError('url of application "' + _declare.name + '" is invalid !');
+        }
+        location$1(_declare.name, _declare.url);
+    });
+}
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {
@@ -436,23 +482,28 @@ var Application = (function (_super) {
         this.route = {};
         Module.apply(this, arguments);
     }
-    Application.location = function (name, url) {
-        if (!url) {
-            throw new TypeError('url "' + url + '" is invalid !');
-        }
-        if (ApplicationRegister[name] && ApplicationRegister[name] !== url) {
-            throw new Error('application "' + name + '" has been located !');
-        }
-        ApplicationRegister[name] = url;
-    };
     Application.register = function (name, url) {
-        if (appNames.indexOf(name) >= 0) {
-            throw new Error('application "' + name + '" has been registered !');
+        var declares = [];
+        if (typeof name === 'string') {
+            url = url || ApplicationRegister[name];
+            declares.push({
+                name: name,
+                url: url
+            });
         }
-        Application.location(name, url);
+        else if (name instanceof Array) {
+            declares = declares.concat(name);
+        }
+        else if (typeof name === 'object') {
+            declares.push(name);
+        }
+        initAppDeclare(declares);
+        var urls = declares.map(function (_declare) {
+            return _declare.url;
+        });
         return ResourceLoader$1.load({
             type: 'js',
-            urls: [url]
+            urls: urls
         });
     };
     Application.prototype.location = function () {
@@ -574,11 +625,11 @@ var Register = (function () {
         var _this = this;
         var urls = [];
         this.modules.forEach(function (declare) {
-            Module.location(declare.name, declare.url);
+            location(declare.name, declare.url);
             urls.push(declare.url);
         });
         this.apps.forEach(function (declare) {
-            Application.location(declare.name, declare.url);
+            location$1(declare.name, declare.url);
             urls.push(declare.url);
         });
         var resource = {

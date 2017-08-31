@@ -1,6 +1,6 @@
 import { Class } from './clazz';
-import { Module } from './module';
-import { Application } from './application';
+import { Module,location as moduleLocation } from './module';
+import { Application,location as appLocation } from './application';
 import ResourceLoader = HERE.ResourceLoader;
 
 class Declare extends Class{
@@ -78,11 +78,11 @@ class Register{
     register() {
         var urls = [];
         this.modules.forEach(function (declare) {
-            Module.location(declare.name,declare.url);
+            moduleLocation(declare.name,declare.url);
             urls.push(declare.url);
         });
         this.apps.forEach(function (declare) {
-            Application.location(declare.name,declare.url);
+            appLocation(declare.name,declare.url);
             urls.push(declare.url);
         });
 
