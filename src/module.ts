@@ -130,10 +130,15 @@ function location(name,url){
     ModuleRegister[name] = url;
 }
 function initModuleDeclare(declares){
+    var nameMap = {};
     declares.forEach(function (_declare) {
         if(moduleNames.indexOf(_declare.name) >= 0){
             throw new Error('module "' + _declare.name + '" has been registered !');
         }
+        if(nameMap[_declare.name]){
+            throw new Error('module "' + _declare.name + '" duplicated !');
+        }
+        nameMap[_declare.name] = true;
         _declare['url'] = _declare.url || ModuleRegister[_declare.name];
         if(typeof _declare.url !== 'string'){
             throw new TypeError('url of module "' + _declare.name + '" is invalid !');

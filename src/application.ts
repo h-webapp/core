@@ -18,10 +18,15 @@ function location(name,url){
     ApplicationRegister[name] = url;
 }
 function initAppDeclare(declares){
+    var nameMap = {};
     declares.forEach(function (_declare) {
         if(appNames.indexOf(_declare.name) >= 0){
             throw new Error('application "' + _declare.name + '" has been registered !');
         }
+        if(nameMap[_declare.name]){
+            throw new Error('application "' + _declare.name + '" duplicated !');
+        }
+        nameMap[_declare.name] = true;
         _declare['url'] = _declare.url || ApplicationRegister[_declare.name];
         if(typeof _declare.url !== 'string'){
             throw new TypeError('url of application "' + _declare.name + '" is invalid !');

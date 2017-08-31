@@ -233,10 +233,15 @@ function location(name, url) {
     ModuleRegister[name] = url;
 }
 function initModuleDeclare(declares) {
+    var nameMap = {};
     declares.forEach(function (_declare) {
         if (moduleNames.indexOf(_declare.name) >= 0) {
             throw new Error('module "' + _declare.name + '" has been registered !');
         }
+        if (nameMap[_declare.name]) {
+            throw new Error('module "' + _declare.name + '" duplicated !');
+        }
+        nameMap[_declare.name] = true;
         _declare['url'] = _declare.url || ModuleRegister[_declare.name];
         if (typeof _declare.url !== 'string') {
             throw new TypeError('url of module "' + _declare.name + '" is invalid !');
@@ -470,10 +475,15 @@ function location$1(name, url) {
     ApplicationRegister[name] = url;
 }
 function initAppDeclare(declares) {
+    var nameMap = {};
     declares.forEach(function (_declare) {
         if (appNames.indexOf(_declare.name) >= 0) {
             throw new Error('application "' + _declare.name + '" has been registered !');
         }
+        if (nameMap[_declare.name]) {
+            throw new Error('application "' + _declare.name + '" duplicated !');
+        }
+        nameMap[_declare.name] = true;
         _declare['url'] = _declare.url || ApplicationRegister[_declare.name];
         if (typeof _declare.url !== 'string') {
             throw new TypeError('url of application "' + _declare.name + '" is invalid !');
@@ -630,10 +640,20 @@ var Register = (function () {
     };
     Register.prototype.register = function () {
         var _this = this;
+        var nameMap = {};
         this.modules.forEach(function (declare) {
+            if (nameMap[declare.name]) {
+                throw new Error('module "' + declare.name + '" duplicated !');
+            }
+            nameMap[declare.name] = true;
             validLocation(declare.name, declare.url);
         });
+        nameMap = {};
         this.apps.forEach(function (declare) {
+            if (nameMap[declare.name]) {
+                throw new Error('application "' + declare.name + '" duplicated !');
+            }
+            nameMap[declare.name] = true;
             validLocation$1(declare.name, declare.url);
         });
         var urls = [];

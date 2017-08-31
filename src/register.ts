@@ -77,10 +77,20 @@ class Register{
     }
     register() {
 
+        var nameMap = {};
         this.modules.forEach(function (declare) {
+            if(nameMap[declare.name]){
+                throw new Error('module "' + declare.name + '" duplicated !');
+            }
+            nameMap[declare.name] = true;
             validModuleLocation(declare.name,declare.url);
         });
+        nameMap = {};
         this.apps.forEach(function (declare) {
+            if(nameMap[declare.name]){
+                throw new Error('application "' + declare.name + '" duplicated !');
+            }
+            nameMap[declare.name] = true;
             validAppLocation(declare.name,declare.url);
         });
 
