@@ -77,12 +77,12 @@ class Application extends Module{
         }
         if(define === void 0){
             if(appNames.indexOf(name) === -1){
-                throw new Error('application : ' + name + ' not found !');
+                throw new Error('application : "' + name + '" not found !');
             }
             return appManager.getService(name);
         }
         if(appNames.indexOf(name) >= 0){
-            throw new Error('application : ' + name + ' has been defined !');
+            throw new Error('application : "' + name + '" has been defined !');
         }
         appManager.service(name, function () {
             var _apps = Module.ensureArray(apps).map(function (appName) {

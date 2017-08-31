@@ -340,7 +340,7 @@ var Module = (function (_super) {
             }).then(function (jsonArray) {
                 return jsonArray[0];
             }, function () {
-                console.error('lang file : ' + url + ' load error !');
+                console.error('lang file : "' + url + '" load error !');
             });
         })).then(function (dataList) {
             dataList.forEach(function (data) {
@@ -425,12 +425,12 @@ var Module = (function (_super) {
         }
         if (define === void 0) {
             if (moduleNames.indexOf(name) === -1) {
-                throw new Error('module : ' + name + ' not found !');
+                throw new Error('module : "' + name + '" not found !');
             }
             return moduleManager.getService(name);
         }
         if (moduleNames.indexOf(name) >= 0) {
-            throw new Error('module : ' + name + ' has been defined !');
+            throw new Error('module : "' + name + '" has been defined !');
         }
         moduleManager.service(name, function () {
             var _modules = Module.ensureArray(modules).map(function (moduleName) {
@@ -528,12 +528,12 @@ var Application = (function (_super) {
         }
         if (define === void 0) {
             if (appNames.indexOf(name) === -1) {
-                throw new Error('application : ' + name + ' not found !');
+                throw new Error('application : "' + name + '" not found !');
             }
             return appManager.getService(name);
         }
         if (appNames.indexOf(name) >= 0) {
-            throw new Error('application : ' + name + ' has been defined !');
+            throw new Error('application : "' + name + '" has been defined !');
         }
         appManager.service(name, function () {
             var _apps = Module.ensureArray(apps).map(function (appName) {
