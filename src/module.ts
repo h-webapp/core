@@ -119,7 +119,7 @@ function load(module:Module){
 var LoadRequest = {};
 var ModuleRegister = {};
 function validLocation(name,url){
-    if(!url){
+    if(typeof url !== 'string'){
         throw new TypeError('url "' + url + '" is invalid !')
     }
     if(ModuleRegister[name] && ModuleRegister[name] !== url){
@@ -133,7 +133,7 @@ function initModuleDeclare(declares){
     var nameMap = {};
     declares.forEach(function (_declare) {
         if(moduleNames.indexOf(_declare.name) >= 0){
-            throw new Error('module "' + _declare.name + '" has been registered !');
+            throw new Error('module "' + _declare.name + '" has exists !');
         }
         if(nameMap[_declare.name]){
             throw new Error('module "' + _declare.name + '" duplicated !');
@@ -188,7 +188,6 @@ class Module extends Injector{
 
         Injector.apply(this,arguments);
 
-
         defineProperty(this,'langResource',LangResource);
 
         defineProperty(this,'resource',Resource);
@@ -198,7 +197,7 @@ class Module extends Injector{
     location() {
         var url =  ModuleRegister[this.moduleName];
         if(!url){
-            throw new Error('module "' + this.moduleName + '"  not be registered !');
+            url = '';
         }
         return url;
     }
@@ -207,9 +206,6 @@ class Module extends Injector{
     }
     baseURI(){
         var url = this.location();
-        if(!url){
-            return '';
-        }
         var index = url.lastIndexOf('/');
         if(index >= 0){
             return url.slice(0,index);
@@ -268,7 +264,7 @@ class Module extends Injector{
             request.status = 1;
         }else if(type === 'reject'){
             request.status = 2;
-            console.error('load : ' + module.getIdentifier() + '  error !');
+            console.error('load : "' + module.getIdentifier() + '"  error !');
         }
 
         if(type === 'resolve'){

@@ -7,7 +7,7 @@ var appNames = [];
 var appManager = new Injector;
 var ApplicationRegister = {};
 function validLocation(name,url){
-    if(!url){
+    if(typeof url !== 'string'){
         throw new TypeError('url "' + url + '" is invalid !')
     }
     if(ApplicationRegister[name] && ApplicationRegister[name] !== url){
@@ -67,7 +67,7 @@ class Application extends Module{
     location() {
         var url =  ApplicationRegister[this.appName];
         if(!url){
-            throw new Error('application "' + this.appName + '"  not be registered !');
+            url = '';
         }
         return url;
     }

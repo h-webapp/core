@@ -21,7 +21,7 @@ var DefineCache = (function () {
             return this.cache[name];
         }
         if (this.constCache[name]) {
-            throw new Error('define name : ' + name + ' has been defined as constant !');
+            throw new Error('define name : "' + name + '" has been defined as a constant !');
         }
         this.cache[name] = define;
     };
@@ -90,7 +90,7 @@ var Class = (function () {
     return Class;
 }());
 
-(function initLnaguage() {
+(function () {
     if (typeof navigator === 'undefined') {
         console.warn('navigator language init fail !');
         return;
@@ -222,7 +222,7 @@ function load(module) {
 var LoadRequest = {};
 var ModuleRegister = {};
 function validLocation(name, url) {
-    if (!url) {
+    if (typeof url !== 'string') {
         throw new TypeError('url "' + url + '" is invalid !');
     }
     if (ModuleRegister[name] && ModuleRegister[name] !== url) {
@@ -236,7 +236,7 @@ function initModuleDeclare(declares) {
     var nameMap = {};
     declares.forEach(function (_declare) {
         if (moduleNames.indexOf(_declare.name) >= 0) {
-            throw new Error('module "' + _declare.name + '" has been registered !');
+            throw new Error('module "' + _declare.name + '" has exists !');
         }
         if (nameMap[_declare.name]) {
             throw new Error('module "' + _declare.name + '" duplicated !');
@@ -295,7 +295,7 @@ var Module = (function (_super) {
     Module.prototype.location = function () {
         var url = ModuleRegister[this.moduleName];
         if (!url) {
-            throw new Error('module "' + this.moduleName + '"  not be registered !');
+            url = '';
         }
         return url;
     };
@@ -304,9 +304,6 @@ var Module = (function (_super) {
     };
     Module.prototype.baseURI = function () {
         var url = this.location();
-        if (!url) {
-            return '';
-        }
         var index = url.lastIndexOf('/');
         if (index >= 0) {
             return url.slice(0, index);
@@ -366,7 +363,7 @@ var Module = (function (_super) {
         }
         else if (type === 'reject') {
             request.status = 2;
-            console.error('load : ' + module.getIdentifier() + '  error !');
+            console.error('load : "' + module.getIdentifier() + '"  error !');
         }
         if (type === 'resolve') {
             module.ready();
@@ -464,7 +461,7 @@ var appNames = [];
 var appManager = new Injector$1;
 var ApplicationRegister = {};
 function validLocation$1(name, url) {
-    if (!url) {
+    if (typeof url !== 'string') {
         throw new TypeError('url "' + url + '" is invalid !');
     }
     if (ApplicationRegister[name] && ApplicationRegister[name] !== url) {
@@ -526,7 +523,7 @@ var Application = (function (_super) {
     Application.prototype.location = function () {
         var url = ApplicationRegister[this.appName];
         if (!url) {
-            throw new Error('application "' + this.appName + '"  not be registered !');
+            url = '';
         }
         return url;
     };

@@ -7,7 +7,7 @@ class DefineCache{
             return this.cache[name];
         }
         if(this.constCache[name]){
-            throw new Error('define name : ' + name + ' has been defined as constant !');
+            throw new Error('define name : "' + name + '" has been defined as a constant !');
         }
         this.cache[name] = define;
     }

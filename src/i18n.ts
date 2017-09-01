@@ -1,6 +1,6 @@
 import { constant } from './define';
 
-(function initLnaguage(){
+(function(){
     if(typeof navigator === 'undefined'){
         console.warn('navigator language init fail !');
         return;
