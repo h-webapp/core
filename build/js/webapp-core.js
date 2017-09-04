@@ -11,6 +11,90 @@ function __extends(d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
+function defineGetSet(instance) {
+    var objectId, _keys, objKeys;
+    function init() {
+        _keys = [];
+        objKeys = {};
+        objectId = 1;
+    }
+    init();
+    function isReferenceType(obj) {
+        return typeof obj === 'object' || typeof obj === 'function';
+    }
+    function mapKey(obj) {
+        var index = _keys.indexOf(obj);
+        if (index === -1) {
+            _keys.push(obj);
+        }
+        if (!isReferenceType(obj)) {
+            return 'attr_' + typeof obj + '_' + obj;
+        }
+        var key = null;
+        if (index === -1) {
+            key = 'attr_object_' + objectId++;
+            objKeys[_keys.length - 1] = key;
+        }
+        else {
+            key = objKeys[index];
+        }
+        return key;
+    }
+    var data = Object.create(null);
+    instance.attr = function (name, value) {
+        if (name === void 0) {
+            return null;
+        }
+        var index = _keys.indexOf(name);
+        if (value === void 0) {
+            return index === -1 ? null : data[mapKey(name)];
+        }
+        name = mapKey(name);
+        data[name] = value;
+    };
+    instance.remove = function (name) {
+        var key = mapKey(name);
+        var index = _keys.indexOf(name);
+        if (index >= 0) {
+            _keys.splice(index, 1);
+        }
+        if (isReferenceType(name)) {
+            if (index >= 0) {
+                delete objKeys[index];
+            }
+        }
+        var value = data[key];
+        delete data[key];
+        return value;
+    };
+    instance.size = function () {
+        return _keys.length;
+    };
+    instance.clear = function () {
+        init();
+    };
+    instance.values = function () {
+        return Object.keys(data).map(function (key) {
+            return data[key];
+        });
+    };
+    instance.keys = function () {
+        return [].concat(_keys);
+    };
+}
+var HashMap = (function () {
+    function HashMap() {
+        defineGetSet(this);
+    }
+    HashMap.prototype.get = function (key) {
+        return this.attr(key);
+    };
+    HashMap.prototype.put = function (key, value) {
+        this.attr(key, value);
+    };
+    return HashMap;
+}());
+
 var DefineCache = (function () {
     function DefineCache() {
         this.cache = {};
@@ -488,13 +572,36 @@ function initAppDeclare(declares) {
         validLocation$1(_declare.name, _declare.url);
     });
 }
+function defineDataProp(object) {
+    var map = new HashMap();
+    object.data = function (name, value) {
+        return map.attr(name, value);
+    };
+}
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {
         this.appName = '';
         this.route = {};
         Module.apply(this, arguments);
+        defineDataProp(this);
     }
+    Application.extend = function (option) {
+        var clazz = function () {
+            Application.apply(this, arguments);
+        };
+        clazz.prototype = Object.create(Application.prototype, {
+            constructor: clazz
+        });
+        var props = option['props'] || {}, staticProps = option['staticProps'] || {};
+        Object.keys(props).forEach(function (key) {
+            clazz.prototype[key] = props[key];
+        });
+        Object.keys(staticProps).forEach(function (key) {
+            clazz[key] = props[key];
+        });
+        return clazz;
+    };
     Application.register = function (name, url) {
         var declares = [];
         if (typeof name === 'string') {
@@ -688,6 +795,7 @@ var Register = (function () {
     return Register;
 }());
 
+exports.HashMap = HashMap;
 exports.define = define;
 exports.constant = constant;
 exports.Location = Location;

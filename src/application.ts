@@ -1,5 +1,6 @@
 import { Module } from './module';
 import { Location } from './location';
+import { HashMap } from './hashmap';
 import Injector = HERE.Injector;
 import ResourceLoader = HERE.ResourceLoader;
 
@@ -34,11 +35,38 @@ function initAppDeclare(declares){
         validLocation(_declare.name,_declare.url);
     });
 }
+function defineDataProp(object){
+    var map = new HashMap();
+    object.data = function (name,value) {
+        return map.attr(name,value);
+    };
+}
 class Application extends Module{
     appName = '';
     route = {};
     constructor(){
         Module.apply(this,arguments);
+        defineDataProp(this);
+    }
+    static extend(option){
+        var clazz = function () {
+            Application.apply(this,arguments);
+        }
+        clazz.prototype = Object.create(Application.prototype,{
+            constructor:clazz
+        });
+        var props = option['props'] || {},
+            staticProps = option['staticProps'] || {};
+
+        Object.keys(props).forEach(function (key) {
+            clazz.prototype[key] = props[key];
+        });
+
+        Object.keys(staticProps).forEach(function (key) {
+            clazz[key] = props[key];
+        });
+
+        return clazz;
     }
     static register(name,url){
         var declares = [];

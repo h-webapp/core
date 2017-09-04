@@ -1,4 +1,6 @@
 
+
+export { HashMap } from './hashmap';
 export { define,constant } from './define';
 export { Location } from './location';
 export { Module } from './module';

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <script>
+        var HERE = {};
+        HERE.Injector = function(){};
+        HERE.ResourceLoader = function () {
+            
+        }
+    </script>
+    <script src="../build/js/webapp-core.js"></script>
+    <script>
+        var key = null,val = null;
+        var hashMap = new HERE.FRAMEWORK.HashMap();
+
+        function createKey(fn){
+            return new fn();
+        }
+
+        function test(fn){
+            for(var i = 0;i < 10;i++){
+                key = createKey(fn);
+                val = 'object_' + i;
+                hashMap.put(key,'object_' + i);
+                if(hashMap.get(key) !== val){
+                    throw new Error('object_' + i + '_key get error !');
+                }
+            }
+        }
+
+        test(Object);
+        test(Array);
+        test(RegExp);
+        test(String);
+
+        console.log(hashMap.keys());
+
+
+    </script>
+</head>
+<body>
+</body>
+</html>
