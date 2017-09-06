@@ -1,7 +1,9 @@
 import { Class } from './clazz';
-import { Module,location as moduleLocation,validLocation as validModuleLocation } from './module';
-import { Application,location as appLocation,validLocation as validAppLocation } from './application';
+import { Module} from './module';
+import { Application } from './application';
 import ResourceLoader = HERE.ResourceLoader;
+import {UrlModuleLoader} from "./loader/url-module-loader";
+import {UrlAppLoader} from "./loader/url-app-loader";
 
 class Declare extends Class{
     name = '';
@@ -24,35 +26,34 @@ interface Resource{
 function defineDeclares(object,name){
     var _declares = [];
 
-    Object.defineProperty(object,name,{
-        set: function (declares) {
-            if(!declares){
-                return;
-            }
-            if(!(declares instanceof Array)){
-                declares = [declares];
-            }
-            var _declareMap = {};
-            _declares =  declares.map(function (declare) {
-                var d = new Declare(declare);
-                if(_declareMap[d.name]){
-                    throw new Error(d.name + ' : more than one declare : ' + d.name + ' found !');
-                }
-                _declareMap[d.name] = true;
-                return d;
-            });
-        },
-        get: function () {
+    object[name] = function (declares) {
+        if(declares === void 0){
             return _declares;
         }
-    });
+        if(!(declares instanceof Array)){
+            declares = [declares];
+        }
+        var _declareMap = {};
+        _declares =  declares.map(function (declare) {
+            var d = new Declare(declare);
+            if(_declareMap[d.name]){
+                throw new Error(d.name + ' : more than one declare : ' + d.name + ' found !');
+            }
+            _declareMap[d.name] = true;
+            return d;
+        });
+
+        return this;
+    };
 }
 var creating = false,instance = null;
+var runtime = {
+    moduleNameMap:{},
+    appNameMap:{}
+};
 class Register{
-    preLoadResource:Resource;
-    afterLoadResource:Resource;
-    modules:Declare[];
-    apps:Declare[];
+    modules:Function;
+    apps:Function;
     constructor(){
         if(!creating){
             throw new Error('constructor is private !');
@@ -70,63 +71,82 @@ class Register{
         return instance;
     }
     addModule(declare) {
-        this.modules.push(new Declare(declare));
+        this.modules().push(new Declare(declare));
+        return this;
     }
     addApp(declare) {
-        this.apps.push(new Declare(declare));
+        this.apps().push(new Declare(declare));
+        return this;
     }
     register() {
-
-        var nameMap = {};
-        this.modules.forEach(function (declare) {
-            if(nameMap[declare.name]){
-                throw new Error('module "' + declare.name + '" duplicated !');
-            }
-            nameMap[declare.name] = true;
-            validModuleLocation(declare.name,declare.url);
-        });
-        nameMap = {};
-        this.apps.forEach(function (declare) {
-            if(nameMap[declare.name]){
-                throw new Error('application "' + declare.name + '" duplicated !');
-            }
-            nameMap[declare.name] = true;
-            validAppLocation(declare.name,declare.url);
-        });
-
-        var urls = [];
-        this.modules.forEach(function (declare) {
-            moduleLocation(declare.name,declare.url);
-            urls.push(declare.url);
-        });
-        this.apps.forEach(function (declare) {
-            appLocation(declare.name,declare.url);
-            urls.push(declare.url);
-        });
-
-        var resource = {
-            type:'js',
-            urls:urls
-        };
-
-        var promise:Promise = null;
-        if(this.preLoadResource){
-            promise = ResourceLoader.load(this.preLoadResource);
-        }
-        if(promise){
-            promise = promise.then(function () {
-                return ResourceLoader.load(resource);
+        var modules = this.modules();
+        var regModule = this.registerModule(modules).then(() => {
+            this.modules = this.modules().filter(function (m) {
+                return modules.indexOf(m) === -1;
             });
-        }else{
-            promise = ResourceLoader.load(resource);
-        }
-        if(this.afterLoadResource){
-            promise = promise.then(() => {
-                return ResourceLoader.load(this.afterLoadResource);
+        });
+        var apps = this.apps();
+        var regApp = this.registerApp(apps).then(() => {
+            this.apps = this.apps().filter(function (app) {
+                return apps.indexOf(app) === -1;
             });
+        });
+        return Promise.all([regModule,regApp]);
+    }
+    private declares(name,url?):Declare[]{
+        var declares = [];
+        if(typeof name === 'string'){
+            declares.push({
+                name:name,
+                url:url
+            });
+        }else if(name instanceof Array){
+            declares = declares.concat(name);
+        }else if(typeof name === 'object'){
+            declares.push(name);
         }
-        return promise;
 
+        return declares;
+    }
+    registerModule(name,url?){
+        var declares = this.declares(name,url);
+        var nameMap = runtime.moduleNameMap;
+        declares.forEach(function (_declare) {
+            if(nameMap[_declare.name]){
+                throw new Error('module : "' + _declare.name + '" is reduplicated !');
+            }
+            if(Module.has(_declare.name)){
+                throw new TypeError('module : "' + _declare.name + '" has exist !');
+            }
+            nameMap[_declare.name] = true;
+        });
+        var promises = declares.map(function (_declare) {
+            var loader = new UrlModuleLoader(_declare.name,_declare.url);
+            return loader.register().then(function () {
+                delete runtime.moduleNameMap[_declare.name];
+            });
+        });
+        return Promise.all(promises);
+    }
+    registerApp(name,url?){
+        var declares = this.declares(name,url);
+        var nameMap = runtime.appNameMap;
+        declares.forEach(function (_declare) {
+            if(nameMap[_declare.name]){
+                throw new Error('application : "' + _declare.name + '" is reduplicated !');
+            }
+            if(Application.has(_declare.name)){
+                throw new TypeError('application : "' + _declare.name + '" has exist !');
+            }
+            nameMap[_declare.name] = true;
+        });
+        var promises = declares.map(function (_declare) {
+            var loader = new UrlAppLoader(_declare.name,_declare.url);
+            return loader.register().then(function () {
+                delete runtime.appNameMap[_declare.name];
+            });
+        });
+        return Promise.all(promises);
     }
 }
 
