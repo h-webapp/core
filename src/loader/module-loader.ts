@@ -14,6 +14,13 @@ class ModuleLoader extends Loader{
     static loader(name:String):ModuleLoader{
         return Loaders[name];
     }
+    static forLoader(name:String):ModuleLoader{
+        var loader = ModuleLoader.loader(name);
+        if(loader){
+            return loader;
+        }
+        return new ModuleLoader(name);
+    }
     baseURI(){
         var url = this.url || '';
         var index = url.lastIndexOf('/');

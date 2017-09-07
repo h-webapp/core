@@ -12,6 +12,13 @@ class AppLoader extends Loader{
     static loader(name:String):AppLoader{
         return Loaders[name];
     }
+    static forLoader(name:String):AppLoader{
+        var loader = AppLoader.loader(name);
+        if(loader){
+            return loader;
+        }
+        return new AppLoader(name);
+    }
     item():Application{
         return Application.app(this.name);
     }

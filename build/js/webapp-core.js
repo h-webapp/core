@@ -341,6 +341,13 @@ var ModuleLoader = (function (_super) {
     ModuleLoader.loader = function (name) {
         return Loaders[name];
     };
+    ModuleLoader.forLoader = function (name) {
+        var loader = ModuleLoader.loader(name);
+        if (loader) {
+            return loader;
+        }
+        return new ModuleLoader(name);
+    };
     ModuleLoader.prototype.baseURI = function () {
         var url = this.url || '';
         var index = url.lastIndexOf('/');
@@ -524,6 +531,7 @@ var Module = (function (_super) {
         if (moduleNames.indexOf(name) >= 0) {
             throw new Error('module : "' + name + '" has been defined !');
         }
+        ModuleLoader.forLoader(name);
         moduleManager.service(name, function () {
             var _modules = Module.ensureArray(modules).map(function (moduleName) {
                 return Module.module(moduleName);
@@ -554,6 +562,13 @@ var AppLoader = (function (_super) {
     }
     AppLoader.loader = function (name) {
         return Loaders$1[name];
+    };
+    AppLoader.forLoader = function (name) {
+        var loader = AppLoader.loader(name);
+        if (loader) {
+            return loader;
+        }
+        return new AppLoader(name);
     };
     AppLoader.prototype.item = function () {
         return Application.app(this.name);
@@ -606,6 +621,7 @@ var Application = (function (_super) {
         if (appNames.indexOf(name) >= 0) {
             throw new Error('application : "' + name + '" has been defined !');
         }
+        AppLoader.forLoader(name);
         appManager.service(name, function () {
             var _apps = Module.ensureArray(apps).map(function (appName) {
                 return Application.app(appName);
@@ -636,6 +652,16 @@ var UrlModuleLoader = (function (_super) {
         this.assertField('url', this.url);
         this.url = url;
     }
+    UrlModuleLoader.forLoader = function (name, url) {
+        var loader = ModuleLoader.loader(name);
+        if (loader) {
+            if (!(loader instanceof UrlModuleLoader)) {
+                throw new TypeError('loader is not a UrlModuleLoader instance !');
+            }
+            return loader;
+        }
+        return new UrlModuleLoader(name, url);
+    };
     UrlModuleLoader.prototype.baseURI = function () {
         var url = this.url || '';
         var index = url.lastIndexOf('/');
@@ -662,6 +688,16 @@ var UrlAppLoader = (function (_super) {
         this.assertField('url', this.url);
         this.url = url;
     }
+    UrlAppLoader.forLoader = function (name, url) {
+        var loader = AppLoader.loader(name);
+        if (loader) {
+            if (!(loader instanceof UrlAppLoader)) {
+                throw new TypeError('loader is not a UrlAppLoader instance !');
+            }
+            return loader;
+        }
+        return new UrlAppLoader(name, url);
+    };
     UrlAppLoader.prototype.baseURI = function () {
         var url = this.url || '';
         var index = url.lastIndexOf('/');
@@ -747,19 +783,12 @@ var Register = (function () {
         return this;
     };
     Register.prototype.register = function () {
-        var _this = this;
         var modules = this.modules();
-        var regModule = this.registerModule(modules).then(function () {
-            _this.modules = _this.modules().filter(function (m) {
-                return modules.indexOf(m) === -1;
-            });
-        });
+        this.modules([]);
+        var regModule = this.registerModule(modules);
         var apps = this.apps();
-        var regApp = this.registerApp(apps).then(function () {
-            _this.apps = _this.apps().filter(function (app) {
-                return apps.indexOf(app) === -1;
-            });
-        });
+        this.apps([]);
+        var regApp = this.registerApp(apps);
         return Promise.all([regModule, regApp]);
     };
     Register.prototype.declares = function (name, url) {
@@ -785,16 +814,15 @@ var Register = (function () {
             if (nameMap[_declare.name]) {
                 throw new Error('module : "' + _declare.name + '" is reduplicated !');
             }
-            if (Module.has(_declare.name)) {
+            if (ModuleLoader.loader(_declare.name)) {
                 throw new TypeError('module : "' + _declare.name + '" has exist !');
             }
             nameMap[_declare.name] = true;
         });
+        runtime.moduleNameMap = {};
         var promises = declares.map(function (_declare) {
-            var loader = new UrlModuleLoader(_declare.name, _declare.url);
-            return loader.register().then(function () {
-                delete runtime.moduleNameMap[_declare.name];
-            });
+            var loader = UrlModuleLoader.forLoader(_declare.name, _declare.url);
+            return loader.register();
         });
         return Promise.all(promises);
     };
@@ -805,16 +833,15 @@ var Register = (function () {
             if (nameMap[_declare.name]) {
                 throw new Error('application : "' + _declare.name + '" is reduplicated !');
             }
-            if (Application.has(_declare.name)) {
+            if (AppLoader.loader(_declare.name)) {
                 throw new TypeError('application : "' + _declare.name + '" has exist !');
             }
             nameMap[_declare.name] = true;
         });
+        runtime.appNameMap = {};
         var promises = declares.map(function (_declare) {
-            var loader = new UrlAppLoader(_declare.name, _declare.url);
-            return loader.register().then(function () {
-                delete runtime.appNameMap[_declare.name];
-            });
+            var loader = UrlAppLoader.forLoader(_declare.name, _declare.url);
+            return loader.register();
         });
         return Promise.all(promises);
     };

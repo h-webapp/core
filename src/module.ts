@@ -122,6 +122,7 @@ class Module extends Injector{
         if(moduleNames.indexOf(name) >= 0){
             throw new Error('module : "' + name + '" has been defined !');
         }
+        ModuleLoader.forLoader(name);
         moduleManager.service(name, function () {
             var _modules = Module.ensureArray(modules).map(function (moduleName) {
                 return Module.module(moduleName);

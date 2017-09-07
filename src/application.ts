@@ -45,6 +45,7 @@ class Application extends Module{
         if(appNames.indexOf(name) >= 0){
             throw new Error('application : "' + name + '" has been defined !');
         }
+        AppLoader.forLoader(name);
         appManager.service(name, function () {
             var _apps = Module.ensureArray(apps).map(function (appName) {
                 return Application.app(appName);

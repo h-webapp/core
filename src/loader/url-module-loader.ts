@@ -7,6 +7,16 @@ class UrlModuleLoader extends ModuleLoader{
         this.assertField('url',this.url);
         this.url = url;
     }
+    static forLoader(name:String,url?:String):UrlModuleLoader{
+        var loader = ModuleLoader.loader(name);
+        if(loader){
+            if(!(loader instanceof UrlModuleLoader)){
+                throw new TypeError('loader is not a UrlModuleLoader instance !');
+            }
+            return <UrlModuleLoader>loader;
+        }
+        return new UrlModuleLoader(name,url);
+    }
     baseURI(){
         var url = this.url || '';
         var index = url.lastIndexOf('/');

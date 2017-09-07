@@ -7,6 +7,16 @@ class UrlAppLoader extends AppLoader{
         this.assertField('url',this.url);
         this.url = url;
     }
+    static forLoader(name:String,url?:String):UrlAppLoader{
+        var loader = AppLoader.loader(name);
+        if(loader){
+            if(!(loader instanceof UrlAppLoader)){
+                throw new TypeError('loader is not a UrlAppLoader instance !');
+            }
+            return <UrlAppLoader>loader;
+        }
+        return new UrlAppLoader(name,url);
+    }
     baseURI(){
         var url = this.url || '';
         var index = url.lastIndexOf('/');

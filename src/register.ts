@@ -4,6 +4,8 @@ import { Application } from './application';
 import ResourceLoader = HERE.ResourceLoader;
 import {UrlModuleLoader} from "./loader/url-module-loader";
 import {UrlAppLoader} from "./loader/url-app-loader";
+import {ModuleLoader} from "./loader/module-loader";
+import {AppLoader} from "./loader/app-loader";
 
 class Declare extends Class{
     name = '';
@@ -80,17 +82,11 @@ class Register{
     }
     register() {
         var modules = this.modules();
-        var regModule = this.registerModule(modules).then(() => {
-            this.modules = this.modules().filter(function (m) {
-                return modules.indexOf(m) === -1;
-            });
-        });
+        this.modules([]);
+        var regModule = this.registerModule(modules);
         var apps = this.apps();
-        var regApp = this.registerApp(apps).then(() => {
-            this.apps = this.apps().filter(function (app) {
-                return apps.indexOf(app) === -1;
-            });
-        });
+        this.apps([]);
+        var regApp = this.registerApp(apps);
         return Promise.all([regModule,regApp]);
     }
     private declares(name,url?):Declare[]{
@@ -111,20 +107,20 @@ class Register{
     registerModule(name,url?){
         var declares = this.declares(name,url);
         var nameMap = runtime.moduleNameMap;
+
         declares.forEach(function (_declare) {
             if(nameMap[_declare.name]){
                 throw new Error('module : "' + _declare.name + '" is reduplicated !');
             }
-            if(Module.has(_declare.name)){
+            if(ModuleLoader.loader(_declare.name)){
                 throw new TypeError('module : "' + _declare.name + '" has exist !');
             }
             nameMap[_declare.name] = true;
         });
+        runtime.moduleNameMap = {};
         var promises = declares.map(function (_declare) {
-            var loader = new UrlModuleLoader(_declare.name,_declare.url);
-            return loader.register().then(function () {
-                delete runtime.moduleNameMap[_declare.name];
-            });
+            var loader = UrlModuleLoader.forLoader(_declare.name,_declare.url);
+            return loader.register();
         });
         return Promise.all(promises);
     }
@@ -135,16 +131,15 @@ class Register{
             if(nameMap[_declare.name]){
                 throw new Error('application : "' + _declare.name + '" is reduplicated !');
             }
-            if(Application.has(_declare.name)){
+            if(AppLoader.loader(_declare.name)){
                 throw new TypeError('application : "' + _declare.name + '" has exist !');
             }
             nameMap[_declare.name] = true;
         });
+        runtime.appNameMap = {};
         var promises = declares.map(function (_declare) {
-            var loader = new UrlAppLoader(_declare.name,_declare.url);
-            return loader.register().then(function () {
-                delete runtime.appNameMap[_declare.name];
-            });
+            var loader = UrlAppLoader.forLoader(_declare.name,_declare.url);
+            return loader.register();
         });
         return Promise.all(promises);
     }
