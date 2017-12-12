@@ -56,6 +56,7 @@ var runtime = {
 class Register{
     modules:Function;
     apps:Function;
+    needLoad:Boolean = true;
     constructor(){
         if(!creating){
             throw new Error('constructor is private !');
@@ -71,6 +72,9 @@ class Register{
         instance = new Register();
         creating = false;
         return instance;
+    }
+    setNeedLoad(needLoad){
+        this.needLoad = needLoad;
     }
     addModule(declare) {
         this.modules().push(new Declare(declare));
@@ -120,8 +124,11 @@ class Register{
         runtime.moduleNameMap = {};
         var promises = declares.map(function (_declare) {
             var loader = UrlModuleLoader.forLoader(_declare.name,_declare.url);
-            return loader.register();
-        });
+            if(this.needLoad){
+                return loader.register();
+            }
+            return Promise.resolve();
+        }.bind(this));
         return Promise.all(promises);
     }
     registerApp(name,url?){
@@ -139,8 +146,11 @@ class Register{
         runtime.appNameMap = {};
         var promises = declares.map(function (_declare) {
             var loader = UrlAppLoader.forLoader(_declare.name,_declare.url);
-            return loader.register();
-        });
+            if(this.needLoad){
+                return loader.register();
+            }
+            return Promise.resolve();
+        }.bind(this));
         return Promise.all(promises);
     }
 }

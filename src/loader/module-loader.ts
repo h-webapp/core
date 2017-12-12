@@ -21,14 +21,6 @@ class ModuleLoader extends Loader{
         }
         return new ModuleLoader(name);
     }
-    baseURI(){
-        var url = this.url || '';
-        var index = url.lastIndexOf('/');
-        if(index >= 0){
-            return url.slice(0,index);
-        }
-        return '';
-    }
     item():Module{
         return Module.module(this.name);
     }

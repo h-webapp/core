@@ -348,14 +348,6 @@ var ModuleLoader = (function (_super) {
         }
         return new ModuleLoader(name);
     };
-    ModuleLoader.prototype.baseURI = function () {
-        var url = this.url || '';
-        var index = url.lastIndexOf('/');
-        if (index >= 0) {
-            return url.slice(0, index);
-        }
-        return '';
-    };
     ModuleLoader.prototype.item = function () {
         return Module.module(this.name);
     };
@@ -759,6 +751,7 @@ var runtime = {
 };
 var Register = (function () {
     function Register() {
+        this.needLoad = true;
         if (!creating) {
             throw new Error('constructor is private !');
         }
@@ -773,6 +766,9 @@ var Register = (function () {
         instance = new Register();
         creating = false;
         return instance;
+    };
+    Register.prototype.setNeedLoad = function (needLoad) {
+        this.needLoad = needLoad;
     };
     Register.prototype.addModule = function (declare) {
         this.modules().push(new Declare(declare));
@@ -822,8 +818,11 @@ var Register = (function () {
         runtime.moduleNameMap = {};
         var promises = declares.map(function (_declare) {
             var loader = UrlModuleLoader.forLoader(_declare.name, _declare.url);
-            return loader.register();
-        });
+            if (this.needLoad) {
+                return loader.register();
+            }
+            return Promise.resolve();
+        }.bind(this));
         return Promise.all(promises);
     };
     Register.prototype.registerApp = function (name, url) {
@@ -841,8 +840,11 @@ var Register = (function () {
         runtime.appNameMap = {};
         var promises = declares.map(function (_declare) {
             var loader = UrlAppLoader.forLoader(_declare.name, _declare.url);
-            return loader.register();
-        });
+            if (this.needLoad) {
+                return loader.register();
+            }
+            return Promise.resolve();
+        }.bind(this));
         return Promise.all(promises);
     };
     return Register;
