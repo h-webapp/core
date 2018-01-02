@@ -1,5 +1,6 @@
 
-
+export { Loader,JsLoader,CssLoader,ResourceLoader,ResourceUrl } from 'dom-resource-loader/src/index';
+export { Injector } from 'injector-ioc/src/index';
 export { HashMap } from './hashmap';
 export { define,constant } from './define';
 export { Location } from './location';

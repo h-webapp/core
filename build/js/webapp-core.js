@@ -11,148 +11,6 @@ function __extends(d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
-function defineGetSet(instance) {
-    var objectId, _keys, objKeys;
-    function init() {
-        _keys = [];
-        objKeys = {};
-        objectId = 1;
-    }
-    init();
-    function isReferenceType(obj) {
-        return typeof obj === 'object' || typeof obj === 'function';
-    }
-    function mapKey(obj) {
-        var index = _keys.indexOf(obj);
-        if (index === -1) {
-            _keys.push(obj);
-        }
-        if (!isReferenceType(obj)) {
-            return 'attr_' + typeof obj + '_' + obj;
-        }
-        var key = null;
-        if (index === -1) {
-            key = 'attr_object_' + objectId++;
-            objKeys[_keys.length - 1] = key;
-        }
-        else {
-            key = objKeys[index];
-        }
-        return key;
-    }
-    var data = Object.create(null);
-    instance.attr = function (name, value) {
-        if (name === void 0) {
-            return null;
-        }
-        var index = _keys.indexOf(name);
-        if (value === void 0) {
-            return index === -1 ? null : data[mapKey(name)];
-        }
-        name = mapKey(name);
-        data[name] = value;
-    };
-    instance.remove = function (name) {
-        var key = mapKey(name);
-        var index = _keys.indexOf(name);
-        if (index >= 0) {
-            _keys.splice(index, 1);
-        }
-        if (isReferenceType(name)) {
-            if (index >= 0) {
-                delete objKeys[index];
-            }
-        }
-        var value = data[key];
-        delete data[key];
-        return value;
-    };
-    instance.size = function () {
-        return _keys.length;
-    };
-    instance.clear = function () {
-        init();
-    };
-    instance.values = function () {
-        return Object.keys(data).map(function (key) {
-            return data[key];
-        });
-    };
-    instance.keys = function () {
-        return [].concat(_keys);
-    };
-}
-var HashMap = (function () {
-    function HashMap() {
-        defineGetSet(this);
-    }
-    HashMap.prototype.get = function (key) {
-        return this.attr(key);
-    };
-    HashMap.prototype.put = function (key, value) {
-        this.attr(key, value);
-    };
-    return HashMap;
-}());
-
-var DefineCache = (function () {
-    function DefineCache() {
-        this.cache = {};
-        this.constCache = {};
-    }
-    DefineCache.prototype.define = function (name, define) {
-        if (define === void 0) {
-            return this.cache[name];
-        }
-        if (this.constCache[name]) {
-            throw new Error('define name : "' + name + '" has been defined as a constant !');
-        }
-        this.cache[name] = define;
-    };
-    DefineCache.prototype.constant = function (name, define) {
-        if (define === void 0) {
-            return this.constCache[name] ? this.cache[name] : undefined;
-        }
-        if (!define) {
-            return;
-        }
-        this.constCache[name] = true;
-        this.cache[name] = define;
-    };
-    return DefineCache;
-}());
-var defineObj = new DefineCache();
-var define = function () {
-    return defineObj.define.apply(defineObj, arguments);
-};
-var constant = function () {
-    return defineObj.constant.apply(defineObj, arguments);
-};
-
-var Location = (function () {
-    function Location() {
-    }
-    Location.locate = function (clazz, identifyName, url) {
-        var $locations = clazz['$locations'];
-        if (!$locations) {
-            $locations = {};
-            Object.defineProperty(clazz, '$locations', {
-                value: $locations
-            });
-        }
-        if (url === void 0) {
-            return $locations[identifyName] || '';
-        }
-        if ($locations[identifyName]) {
-            return;
-        }
-        Object.defineProperty($locations, identifyName, {
-            value: url
-        });
-    };
-    return Location;
-}());
-
 var LoaderEnvModel;
 (function (LoaderEnvModel) {
     LoaderEnvModel[LoaderEnvModel["PRODUCT"] = 'product'] = "PRODUCT";
@@ -167,7 +25,7 @@ var nextId = (function () {
 /**
  * base abstract class loader
  */
-var Loader$1 = (function () {
+var Loader = (function () {
     function Loader(option) {
         this.option = {
             url: ''
@@ -392,7 +250,7 @@ var ElementLoader = (function (_super) {
         return promise;
     };
     return ElementLoader;
-}(Loader$1));
+}(Loader));
 
 var jsQueueManager = new RequestQueueManager();
 var JsLoader = (function (_super) {
@@ -471,7 +329,7 @@ var JsLoader = (function (_super) {
     JsLoader.prototype._load = function () {
         var _this = this;
         return _super.prototype._load.call(this).then(function (d) {
-            if (Loader$1.ENV_MODE === LoaderEnvModel.PRODUCT && _this.el) {
+            if (Loader.ENV_MODE === LoaderEnvModel.PRODUCT && _this.el) {
                 try {
                     _this.el.parentNode.removeChild(_this.el);
                 }
@@ -708,7 +566,7 @@ var TextLoader = (function (_super) {
         return promise;
     };
     return TextLoader;
-}(Loader$1));
+}(Loader));
 
 var JsonLoader = (function (_super) {
     __extends(JsonLoader, _super);
@@ -949,208 +807,6 @@ var ResourceLoader = (function () {
     };
     return ResourceLoader;
 }());
-
-(function () {
-    if (typeof navigator === 'undefined') {
-        console.warn('navigator language init fail !');
-        return;
-    }
-    var language = navigator.language || navigator['browserLanguage'] || navigator['userLanguage'] || 'zh-cn';
-    language = language.toLowerCase();
-    constant('language', language);
-})();
-function getLanguage() {
-    return constant('language');
-}
-
-var ModuleLoadRequest$1 = {};
-function executeCalls(module, type, data) {
-    var request = this[module.getIdentifier()];
-    request.data = data;
-    if (type === 'resolve') {
-        request.status = 1;
-    }
-    else if (type === 'reject') {
-        request.status = 2;
-        console.error('load : "' + module.getIdentifier() + '"  error !');
-    }
-    if (type === 'resolve') {
-        module.ready();
-    }
-    request.calls.forEach(function (call) {
-        var fn = call[type];
-        try {
-            fn(data);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    });
-    request.calls.length = 0;
-}
-function load(module) {
-    var moduleLoader = module.loader();
-    var _resource = module.resource;
-    var resources = [];
-    if (_resource.js.length > 0) {
-        resources.push({
-            type: 'js',
-            serial: _resource.jsSerial,
-            urls: Module.ensureArray(_resource.js)
-        });
-    }
-    if (_resource.css.length > 0) {
-        resources.push({
-            type: 'css',
-            serial: _resource.cssSerial,
-            urls: Module.ensureArray(_resource.css)
-        });
-    }
-    var parent = module.parent;
-    var promises = [];
-    if (parent) {
-        parent.items().forEach(function (m) {
-            if (!(m instanceof Module)) {
-                return;
-            }
-            promises.push(m.load());
-        });
-    }
-    var loader = new ResourceLoader({
-        baseURI: moduleLoader.baseURI()
-    });
-    promises.push(moduleLoader.loadLangResource());
-    var p = Promise.all(promises);
-    p = p.then(function () {
-        return loader.load(resources);
-    });
-    return p;
-}
-function parseLangFile(file) {
-    var index = file.lastIndexOf('.');
-    var fileName = file.slice(0, index);
-    var lang = getLanguage();
-    if (lang) {
-        fileName = fileName + '_' + lang;
-    }
-    return fileName + file.slice(index);
-}
-var Loader$$1 = (function () {
-    function Loader$$1(name) {
-        this.name = '';
-        this.assertField('name', this.name);
-        this.name = name;
-    }
-    Loader$$1.prototype.assertField = function (fieldName, type) {
-        var value = this[fieldName];
-        if (typeof value !== typeof type) {
-            throw new TypeError('loader "' + fieldName + '" is not a "' + (typeof value) + '" type !');
-        }
-    };
-    Loader$$1.prototype.baseURI = function () {
-        return '';
-    };
-    Loader$$1.prototype.parseUrl = function (url) {
-        return ResourceUrl.parseUrl(this.baseURI(), url);
-    };
-    Loader$$1.prototype.loadResource = function (resources) {
-        var loader = new ResourceLoader({
-            baseURI: this.baseURI()
-        });
-        return loader.load.apply(loader, arguments);
-    };
-    Loader$$1.prototype.loadLangResource = function () {
-        var _this = this;
-        var module = this.item();
-        var _resource = module.resource;
-        return Promise.all(_resource.langFiles.map(function (file) {
-            var url = _this.parseUrl(parseLangFile(file));
-            return ResourceLoader.load({
-                type: 'json',
-                urls: [url]
-            }).then(function (jsonArray) {
-                return jsonArray[0];
-            }, function () {
-                console.error('lang file : "' + url + '" load error !');
-            });
-        })).then(function (dataList) {
-            dataList.forEach(function (data) {
-                if (data) {
-                    module.langResource.addResource(data);
-                }
-            });
-        });
-    };
-    Loader$$1.prototype.loadRequest = function () {
-        return ModuleLoadRequest$1;
-    };
-    Loader$$1.prototype.load = function () {
-        var item = this.item();
-        var resolve = null, reject = null;
-        var promise = new Promise(function (_resolve, _reject) {
-            resolve = _resolve;
-            reject = _reject;
-        });
-        var LoadRequest = this.loadRequest();
-        var request = LoadRequest[item.getIdentifier()];
-        if (!request) {
-            request = LoadRequest[item.getIdentifier()] = {
-                status: 0,
-                data: null,
-                calls: []
-            };
-        }
-        if (request.status === 1) {
-            resolve(request.data);
-            return promise;
-        }
-        if (request.status === 2) {
-            reject(request.data);
-            return promise;
-        }
-        request.calls.push({
-            resolve: resolve,
-            reject: reject
-        });
-        load(item).then(function (result) {
-            executeCalls.call(LoadRequest, item, 'resolve', result);
-        }, function (e) {
-            executeCalls.call(LoadRequest, item, 'reject', e);
-        });
-        return promise;
-    };
-    return Loader$$1;
-}());
-
-var ModuleLoadRequest = {};
-var Loaders = {};
-var ModuleLoader = (function (_super) {
-    __extends(ModuleLoader, _super);
-    function ModuleLoader(name) {
-        _super.call(this, name);
-        this.url = '';
-        if (!Loaders[name]) {
-            Loaders[name] = this;
-        }
-    }
-    ModuleLoader.loader = function (name) {
-        return Loaders[name];
-    };
-    ModuleLoader.forLoader = function (name) {
-        var loader = ModuleLoader.loader(name);
-        if (loader) {
-            return loader;
-        }
-        return new ModuleLoader(name);
-    };
-    ModuleLoader.prototype.item = function () {
-        return Module.module(this.name);
-    };
-    ModuleLoader.prototype.loadRequest = function () {
-        return ModuleLoadRequest;
-    };
-    return ModuleLoader;
-}(Loader$$1));
 
 var util;
 (function (util) {
@@ -1700,6 +1356,350 @@ var Injector = (function (_super) {
     return Injector;
 }(CircularCheck));
 
+function defineGetSet(instance) {
+    var objectId, _keys, objKeys;
+    function init() {
+        _keys = [];
+        objKeys = {};
+        objectId = 1;
+    }
+    init();
+    function isReferenceType(obj) {
+        return typeof obj === 'object' || typeof obj === 'function';
+    }
+    function mapKey(obj) {
+        var index = _keys.indexOf(obj);
+        if (index === -1) {
+            _keys.push(obj);
+        }
+        if (!isReferenceType(obj)) {
+            return 'attr_' + typeof obj + '_' + obj;
+        }
+        var key = null;
+        if (index === -1) {
+            key = 'attr_object_' + objectId++;
+            objKeys[_keys.length - 1] = key;
+        }
+        else {
+            key = objKeys[index];
+        }
+        return key;
+    }
+    var data = Object.create(null);
+    instance.attr = function (name, value) {
+        if (name === void 0) {
+            return null;
+        }
+        var index = _keys.indexOf(name);
+        if (value === void 0) {
+            return index === -1 ? null : data[mapKey(name)];
+        }
+        name = mapKey(name);
+        data[name] = value;
+    };
+    instance.remove = function (name) {
+        var key = mapKey(name);
+        var index = _keys.indexOf(name);
+        if (index >= 0) {
+            _keys.splice(index, 1);
+        }
+        if (isReferenceType(name)) {
+            if (index >= 0) {
+                delete objKeys[index];
+            }
+        }
+        var value = data[key];
+        delete data[key];
+        return value;
+    };
+    instance.size = function () {
+        return _keys.length;
+    };
+    instance.clear = function () {
+        init();
+    };
+    instance.values = function () {
+        return Object.keys(data).map(function (key) {
+            return data[key];
+        });
+    };
+    instance.keys = function () {
+        return [].concat(_keys);
+    };
+}
+var HashMap = (function () {
+    function HashMap() {
+        defineGetSet(this);
+    }
+    HashMap.prototype.get = function (key) {
+        return this.attr(key);
+    };
+    HashMap.prototype.put = function (key, value) {
+        this.attr(key, value);
+    };
+    return HashMap;
+}());
+
+var DefineCache = (function () {
+    function DefineCache() {
+        this.cache = {};
+        this.constCache = {};
+    }
+    DefineCache.prototype.define = function (name, define) {
+        if (define === void 0) {
+            return this.cache[name];
+        }
+        if (this.constCache[name]) {
+            throw new Error('define name : "' + name + '" has been defined as a constant !');
+        }
+        this.cache[name] = define;
+    };
+    DefineCache.prototype.constant = function (name, define) {
+        if (define === void 0) {
+            return this.constCache[name] ? this.cache[name] : undefined;
+        }
+        if (!define) {
+            return;
+        }
+        this.constCache[name] = true;
+        this.cache[name] = define;
+    };
+    return DefineCache;
+}());
+var defineObj = new DefineCache();
+var define = function () {
+    return defineObj.define.apply(defineObj, arguments);
+};
+var constant = function () {
+    return defineObj.constant.apply(defineObj, arguments);
+};
+
+var Location = (function () {
+    function Location() {
+    }
+    Location.locate = function (clazz, identifyName, url) {
+        var $locations = clazz['$locations'];
+        if (!$locations) {
+            $locations = {};
+            Object.defineProperty(clazz, '$locations', {
+                value: $locations
+            });
+        }
+        if (url === void 0) {
+            return $locations[identifyName] || '';
+        }
+        if ($locations[identifyName]) {
+            return;
+        }
+        Object.defineProperty($locations, identifyName, {
+            value: url
+        });
+    };
+    return Location;
+}());
+
+(function () {
+    if (typeof navigator === 'undefined') {
+        console.warn('navigator language init fail !');
+        return;
+    }
+    var language = navigator.language || navigator['browserLanguage'] || navigator['userLanguage'] || 'zh-cn';
+    language = language.toLowerCase();
+    constant('language', language);
+})();
+function getLanguage() {
+    return constant('language');
+}
+
+var ModuleLoadRequest$1 = {};
+function executeCalls(module, type, data) {
+    var request = this[module.getIdentifier()];
+    request.data = data;
+    if (type === 'resolve') {
+        request.status = 1;
+    }
+    else if (type === 'reject') {
+        request.status = 2;
+        console.error('load : "' + module.getIdentifier() + '"  error !');
+    }
+    if (type === 'resolve') {
+        module.ready();
+    }
+    request.calls.forEach(function (call) {
+        var fn = call[type];
+        try {
+            fn(data);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    });
+    request.calls.length = 0;
+}
+function load(module) {
+    var moduleLoader = module.loader();
+    var _resource = module.resource;
+    var resources = [];
+    if (_resource.js.length > 0) {
+        resources.push({
+            type: 'js',
+            serial: _resource.jsSerial,
+            urls: Module.ensureArray(_resource.js)
+        });
+    }
+    if (_resource.css.length > 0) {
+        resources.push({
+            type: 'css',
+            serial: _resource.cssSerial,
+            urls: Module.ensureArray(_resource.css)
+        });
+    }
+    var parent = module.parent;
+    var promises = [];
+    if (parent) {
+        parent.items().forEach(function (m) {
+            if (!(m instanceof Module)) {
+                return;
+            }
+            promises.push(m.load());
+        });
+    }
+    var loader = new ResourceLoader({
+        baseURI: moduleLoader.baseURI()
+    });
+    promises.push(moduleLoader.loadLangResource());
+    var p = Promise.all(promises);
+    p = p.then(function () {
+        return loader.load(resources);
+    });
+    return p;
+}
+function parseLangFile(file) {
+    var index = file.lastIndexOf('.');
+    var fileName = file.slice(0, index);
+    var lang = getLanguage();
+    if (lang) {
+        fileName = fileName + '_' + lang;
+    }
+    return fileName + file.slice(index);
+}
+var Loader$1 = (function () {
+    function Loader$$1(name) {
+        this.name = '';
+        this.assertField('name', this.name);
+        this.name = name;
+    }
+    Loader$$1.prototype.assertField = function (fieldName, type) {
+        var value = this[fieldName];
+        if (typeof value !== typeof type) {
+            throw new TypeError('loader "' + fieldName + '" is not a "' + (typeof value) + '" type !');
+        }
+    };
+    Loader$$1.prototype.baseURI = function () {
+        return '';
+    };
+    Loader$$1.prototype.parseUrl = function (url) {
+        return ResourceUrl.parseUrl(this.baseURI(), url);
+    };
+    Loader$$1.prototype.loadResource = function (resources) {
+        var loader = new ResourceLoader({
+            baseURI: this.baseURI()
+        });
+        return loader.load.apply(loader, arguments);
+    };
+    Loader$$1.prototype.loadLangResource = function () {
+        var _this = this;
+        var module = this.item();
+        var _resource = module.resource;
+        return Promise.all(_resource.langFiles.map(function (file) {
+            var url = _this.parseUrl(parseLangFile(file));
+            return ResourceLoader.load({
+                type: 'json',
+                urls: [url]
+            }).then(function (jsonArray) {
+                return jsonArray[0];
+            }, function () {
+                console.error('lang file : "' + url + '" load error !');
+            });
+        })).then(function (dataList) {
+            dataList.forEach(function (data) {
+                if (data) {
+                    module.langResource.addResource(data);
+                }
+            });
+        });
+    };
+    Loader$$1.prototype.loadRequest = function () {
+        return ModuleLoadRequest$1;
+    };
+    Loader$$1.prototype.load = function () {
+        var item = this.item();
+        var resolve = null, reject = null;
+        var promise = new Promise(function (_resolve, _reject) {
+            resolve = _resolve;
+            reject = _reject;
+        });
+        var LoadRequest = this.loadRequest();
+        var request = LoadRequest[item.getIdentifier()];
+        if (!request) {
+            request = LoadRequest[item.getIdentifier()] = {
+                status: 0,
+                data: null,
+                calls: []
+            };
+        }
+        if (request.status === 1) {
+            resolve(request.data);
+            return promise;
+        }
+        if (request.status === 2) {
+            reject(request.data);
+            return promise;
+        }
+        request.calls.push({
+            resolve: resolve,
+            reject: reject
+        });
+        load(item).then(function (result) {
+            executeCalls.call(LoadRequest, item, 'resolve', result);
+        }, function (e) {
+            executeCalls.call(LoadRequest, item, 'reject', e);
+        });
+        return promise;
+    };
+    return Loader$$1;
+}());
+
+var ModuleLoadRequest = {};
+var Loaders = {};
+var ModuleLoader = (function (_super) {
+    __extends(ModuleLoader, _super);
+    function ModuleLoader(name) {
+        _super.call(this, name);
+        this.url = '';
+        if (!Loaders[name]) {
+            Loaders[name] = this;
+        }
+    }
+    ModuleLoader.loader = function (name) {
+        return Loaders[name];
+    };
+    ModuleLoader.forLoader = function (name) {
+        var loader = ModuleLoader.loader(name);
+        if (loader) {
+            return loader;
+        }
+        return new ModuleLoader(name);
+    };
+    ModuleLoader.prototype.item = function () {
+        return Module.module(this.name);
+    };
+    ModuleLoader.prototype.loadRequest = function () {
+        return ModuleLoadRequest;
+    };
+    return ModuleLoader;
+}(Loader$1));
+
 var Class = (function () {
     function Class() {
     }
@@ -1912,7 +1912,7 @@ var AppLoader = (function (_super) {
         return AppLoadRequest;
     };
     return AppLoader;
-}(Loader$$1));
+}(Loader$1));
 
 var appNames = [];
 var appManager = new Injector;
@@ -2192,6 +2192,12 @@ var Register = (function () {
     return Register;
 }());
 
+exports.Loader = Loader;
+exports.JsLoader = JsLoader;
+exports.CssLoader = CssLoader;
+exports.ResourceLoader = ResourceLoader;
+exports.ResourceUrl = ResourceUrl;
+exports.Injector = Injector;
 exports.HashMap = HashMap;
 exports.define = define;
 exports.constant = constant;
