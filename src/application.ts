@@ -16,7 +16,6 @@ class Application extends Module{
     appName = '';
     route = {};
     constructor(){
-        super();
         Module.apply(this,arguments);
         defineDataProp(this);
         delete this.moduleName;

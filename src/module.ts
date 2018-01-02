@@ -56,7 +56,6 @@ class Module extends Injector{
     }
     constructor(){
 
-        super();
         Injector.apply(this,arguments);
 
         defineProperty(this,'langResource',LangResource);

@@ -1793,7 +1793,6 @@ function getLangText(m, key, defaultValue) {
 var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
-        _super.call(this);
         this.description = '';
         this._readyListeners = [];
         Injector.apply(this, arguments);
@@ -1925,7 +1924,6 @@ function defineDataProp(object) {
 var Application = (function (_super) {
     __extends(Application, _super);
     function Application() {
-        _super.call(this);
         this.appName = '';
         this.route = {};
         Module.apply(this, arguments);
