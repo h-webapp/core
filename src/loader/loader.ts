@@ -1,5 +1,4 @@
-import ResourceLoader = HERE.ResourceLoader;
-import ResourceUrl = HERE.ResourceUrl;
+import { ResourceLoader,ResourceUrl } from 'dom-resource-loader/src/index'
 import { Module } from '../module';
 import { getLanguage } from '../i18n';
 

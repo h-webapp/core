@@ -1,5 +1,5 @@
 import {AppLoader} from "./app-loader";
-import ResourceLoader = HERE.ResourceLoader;
+import { ResourceLoader } from 'dom-resource-loader/src/index'
 class UrlAppLoader extends AppLoader{
     url:String = '';
     constructor(name:String,url:String){

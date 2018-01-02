@@ -1,7 +1,6 @@
 import { Module } from './module';
 import { HashMap } from './hashmap';
-import Injector = HERE.Injector;
-import ResourceLoader = HERE.ResourceLoader;
+import { Injector } from 'injector-ioc/src/index'
 import {AppLoader} from "./loader/app-loader";
 import {Loader} from "./loader/loader";
 
@@ -17,6 +16,7 @@ class Application extends Module{
     appName = '';
     route = {};
     constructor(){
+        super();
         Module.apply(this,arguments);
         defineDataProp(this);
         delete this.moduleName;

@@ -1,8 +1,5 @@
-import { Class } from './clazz';
 import { ModuleLoader } from './loader/module-loader';
-import ResourceLoader = HERE.ResourceLoader;
-import ResourceUrl = HERE.ResourceUrl;
-import Injector = HERE.Injector;
+import { Injector } from 'injector-ioc/src/index'
 import { Resource } from './resource/resource'
 import { LangResource } from './resource/lang-resource'
 import {Loader} from "./loader/loader";
@@ -59,6 +56,7 @@ class Module extends Injector{
     }
     constructor(){
 
+        super();
         Injector.apply(this,arguments);
 
         defineProperty(this,'langResource',LangResource);

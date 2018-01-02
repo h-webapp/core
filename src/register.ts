@@ -1,7 +1,4 @@
 import { Class } from './clazz';
-import { Module} from './module';
-import { Application } from './application';
-import ResourceLoader = HERE.ResourceLoader;
 import {UrlModuleLoader} from "./loader/url-module-loader";
 import {UrlAppLoader} from "./loader/url-app-loader";
 import {ModuleLoader} from "./loader/module-loader";
@@ -11,6 +8,7 @@ class Declare extends Class{
     name = '';
     url = '';
     constructor(declare){
+        super();
         this.assign(['name','url'],declare);
         if(!this.name){
             throw new Error('param "name" field is invalid !');
