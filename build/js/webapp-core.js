@@ -1603,6 +1603,9 @@ var Loader$1 = (function () {
         if (!this._baseURI) {
             this._baseURI = uri;
         }
+        else {
+            console.warn('baseURI has been defined !');
+        }
         return this._baseURI;
     };
     Loader$$1.prototype.parseUrl = function (url) {

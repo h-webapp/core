@@ -94,6 +94,8 @@ abstract class Loader{
         }
         if(!this._baseURI){
             this._baseURI = uri;
+        }else{
+            console.warn('baseURI has been defined !');
         }
         return this._baseURI;
     }
