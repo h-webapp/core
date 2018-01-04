@@ -77,6 +77,7 @@ function parseLangFile(file){
 }
 abstract class Loader{
     name:String = '';
+    private _baseURI:String = '';
     constructor(name:String){
         this.assertField('name',this.name);
         this.name = name;
@@ -87,8 +88,14 @@ abstract class Loader{
             throw new TypeError('loader "' + fieldName + '" is not a "' + (typeof value) + '" type !');
         }
     }
-    baseURI(){
-        return '';
+    baseURI(uri?:String){
+        if(arguments.length === 0){
+            return this._baseURI;
+        }
+        if(!this._baseURI){
+            this._baseURI = uri;
+        }
+        return this._baseURI;
     }
     parseUrl(url) {
         return ResourceUrl.parseUrl(this.baseURI(),url);

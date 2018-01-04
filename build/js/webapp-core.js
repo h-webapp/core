@@ -1586,6 +1586,7 @@ function parseLangFile(file) {
 var Loader$1 = (function () {
     function Loader$$1(name) {
         this.name = '';
+        this._baseURI = '';
         this.assertField('name', this.name);
         this.name = name;
     }
@@ -1595,8 +1596,14 @@ var Loader$1 = (function () {
             throw new TypeError('loader "' + fieldName + '" is not a "' + (typeof value) + '" type !');
         }
     };
-    Loader$$1.prototype.baseURI = function () {
-        return '';
+    Loader$$1.prototype.baseURI = function (uri) {
+        if (arguments.length === 0) {
+            return this._baseURI;
+        }
+        if (!this._baseURI) {
+            this._baseURI = uri;
+        }
+        return this._baseURI;
     };
     Loader$$1.prototype.parseUrl = function (url) {
         return ResourceUrl.parseUrl(this.baseURI(), url);
