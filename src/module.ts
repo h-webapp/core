@@ -106,6 +106,17 @@ class Module extends Injector{
             return Module.module(name);
         });
     }
+    static parseDependence(modules:String[]){
+        return Module.ensureArray(modules).map(function (moduleName) {
+            if(moduleName instanceof Module){
+                return moduleName;
+            }
+            if(typeof moduleName === 'function'){
+                return moduleName();
+            }
+            return Module.module(moduleName);
+        });
+    }
     static module(name,define?,modules?) {
         if(!name){
             return;
@@ -121,9 +132,7 @@ class Module extends Injector{
         }
         ModuleLoader.forLoader(name);
         moduleManager.service(name, function () {
-            var _modules = Module.ensureArray(modules).map(function (moduleName) {
-                return Module.module(moduleName);
-            });
+            var _modules = Module.parseDependence(modules);
             var m = new Module(_modules);
             Object.defineProperty(m,'moduleName',{
                 value:name

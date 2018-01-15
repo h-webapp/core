@@ -1890,6 +1890,17 @@ var Module = (function (_super) {
             return Module.module(name);
         });
     };
+    Module.parseDependence = function (modules) {
+        return Module.ensureArray(modules).map(function (moduleName) {
+            if (moduleName instanceof Module) {
+                return moduleName;
+            }
+            if (typeof moduleName === 'function') {
+                return moduleName();
+            }
+            return Module.module(moduleName);
+        });
+    };
     Module.module = function (name, define, modules) {
         if (!name) {
             return;
@@ -1905,9 +1916,7 @@ var Module = (function (_super) {
         }
         ModuleLoader.forLoader(name);
         moduleManager.service(name, function () {
-            var _modules = Module.ensureArray(modules).map(function (moduleName) {
-                return Module.module(moduleName);
-            });
+            var _modules = Module.parseDependence(modules);
             var m = new Module(_modules);
             Object.defineProperty(m, 'moduleName', {
                 value: name
@@ -1979,6 +1988,17 @@ var Application = (function (_super) {
             return Application.app(name);
         });
     };
+    Application.parseDependence = function (apps) {
+        return Module.ensureArray(apps).map(function (appName) {
+            if (appName instanceof Application) {
+                return appName;
+            }
+            if (typeof appName === 'function') {
+                return appName();
+            }
+            return Application.app(appName);
+        });
+    };
     Application.app = function (name, define, modules, apps) {
         if (!name) {
             return;
@@ -1994,12 +2014,8 @@ var Application = (function (_super) {
         }
         AppLoader.forLoader(name);
         appManager.service(name, function () {
-            var _apps = Module.ensureArray(apps).map(function (appName) {
-                return Application.app(appName);
-            });
-            var _modules = Module.ensureArray(modules).map(function (moduleName) {
-                return Module.module(moduleName);
-            });
+            var _apps = Application.parseDependence(apps);
+            var _modules = Module.parseDependence(modules);
             var app = new Application(_apps, _modules);
             Object.defineProperty(app, 'appName', {
                 value: name

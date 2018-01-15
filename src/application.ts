@@ -31,6 +31,17 @@ class Application extends Module{
             return Application.app(name);
         });
     }
+    static parseDependence(apps:String[]){
+        return Module.ensureArray(apps).map(function (appName) {
+            if(appName instanceof Application){
+                return appName;
+            }
+            if(typeof appName === 'function'){
+                return appName();
+            }
+            return Application.app(appName);
+        });
+    }
     static app(name,define?,modules?,apps?) {
         if(!name){
             return;
@@ -46,12 +57,8 @@ class Application extends Module{
         }
         AppLoader.forLoader(name);
         appManager.service(name, function () {
-            var _apps = Module.ensureArray(apps).map(function (appName) {
-                return Application.app(appName);
-            });
-            var _modules = Module.ensureArray(modules).map(function (moduleName) {
-                return Module.module(moduleName);
-            });
+            var _apps = Application.parseDependence(apps);
+            var _modules = Module.parseDependence(modules);
             var app = new Application(_apps,_modules);
             Object.defineProperty(app,'appName',{
                 value:name
