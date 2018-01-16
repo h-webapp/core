@@ -31,6 +31,9 @@ class Application extends Module{
             return Application.app(name);
         });
     }
+    static has(name:String){
+        return appNames.indexOf(name) >= 0;
+    }
     static parseDependence(apps:String[]){
         return Module.ensureArray(apps).map(function (appName) {
             if(appName instanceof Application){

@@ -1988,6 +1988,9 @@ var Application = (function (_super) {
             return Application.app(name);
         });
     };
+    Application.has = function (name) {
+        return appNames.indexOf(name) >= 0;
+    };
     Application.parseDependence = function (apps) {
         return Module.ensureArray(apps).map(function (appName) {
             if (appName instanceof Application) {
