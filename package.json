@@ -1,7 +1,10 @@
 {
   "name": "webapp-core",
-  "version": "1.0.36",
+  "version": "1.0.38",
   "description": "webapp",
+  "files": [
+    "build"
+  ],
   "main": "index.js",
   "scripts": {
     "compile": "rollup -c",

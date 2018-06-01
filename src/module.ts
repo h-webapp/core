@@ -39,6 +39,7 @@ function getLangText(m:Module,key,defaultValue){
     return caption;
 }
 
+var readyKey = Symbol('readyKey');
 class Module extends Injector{
     moduleName:String;
     description = '';
@@ -65,7 +66,13 @@ class Module extends Injector{
         defineLangService(this);
     }
     load():Promise{
-        return this.loader().load();
+        return this.loader().load().then(() => {
+            try{
+                this.ready();
+            }catch (e){
+                console.error(e);
+            }
+        });
     }
     loadResource():Promise{
         var loader = this.loader();
@@ -92,10 +99,15 @@ class Module extends Injector{
                 }
             });
             this._readyListeners.length = 0;
+            this[readyKey] = true;
             return;
         }
         if(typeof fn === 'function'){
-            this._readyListeners.push(fn);
+            if(this[readyKey]){
+                fn.call(this);
+            }else{
+                this._readyListeners.push(fn);
+            }
         }
     }
     static has(name:String){

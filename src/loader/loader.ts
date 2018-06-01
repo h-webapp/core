@@ -14,9 +14,6 @@ function executeCalls(module:Module,type:String,data){
         console.error('load : "' + module.getIdentifier() + '"  error !');
     }
 
-    if(type === 'resolve'){
-        module.ready();
-    }
     request.calls.forEach(function (call) {
         var fn = call[type];
         try{

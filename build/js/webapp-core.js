@@ -1569,9 +1569,6 @@ function executeCalls(module, type, data) {
         request.status = 2;
         console.error('load : "' + module.getIdentifier() + '"  error !');
     }
-    if (type === 'resolve') {
-        module.ready();
-    }
     request.calls.forEach(function (call) {
         var fn = call[type];
         try {
@@ -1847,6 +1844,7 @@ function getLangText(m, key, defaultValue) {
     }
     return caption;
 }
+var readyKey = Symbol('readyKey');
 var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
@@ -1867,7 +1865,15 @@ var Module = (function (_super) {
         return values;
     };
     Module.prototype.load = function () {
-        return this.loader().load();
+        var _this = this;
+        return this.loader().load().then(function () {
+            try {
+                _this.ready();
+            }
+            catch (e) {
+                console.error(e);
+            }
+        });
     };
     Module.prototype.loadResource = function () {
         var loader = this.loader();
@@ -1895,10 +1901,16 @@ var Module = (function (_super) {
                 }
             });
             this._readyListeners.length = 0;
+            this[readyKey] = true;
             return;
         }
         if (typeof fn === 'function') {
-            this._readyListeners.push(fn);
+            if (this[readyKey]) {
+                fn.call(this);
+            }
+            else {
+                this._readyListeners.push(fn);
+            }
         }
     };
     Module.has = function (name) {
