@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/h-webapp/core#readme",
   "dependencies": {
-    "dom-resource-loader": "^1.0.39",
+    "dom-resource-loader": "^1.0.40",
     "injector-ioc": "^1.1.9"
   }
 }
