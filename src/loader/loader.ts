@@ -32,6 +32,7 @@ function load(module:Module){
     if(_resource.js.length > 0){
         resources.push({
             type:'js',
+            attributes:_resource.attributes,
             serial:_resource.jsSerial,
             urls:Module.ensureArray(_resource.js)
         });
@@ -39,6 +40,7 @@ function load(module:Module){
     if(_resource.css.length > 0){
         resources.push({
             type:'css',
+            attributes:_resource.attributes,
             serial:_resource.cssSerial,
             urls:Module.ensureArray(_resource.css)
         });

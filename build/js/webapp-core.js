@@ -219,6 +219,21 @@ var ElementLoader = (function (_super) {
             target: this.el
         };
     };
+    ElementLoader.prototype.appendAttributes = function (el) {
+        if (!el) {
+            return;
+        }
+        var attributes = this.option.attributes || {};
+        Object.keys(attributes).forEach(function (key) {
+            if (typeof key !== 'string') {
+                return;
+            }
+            var value = attributes[key];
+            if (['number', 'boolean', 'string'].indexOf(typeof value) >= 0) {
+                el.setAttribute(key, String(value));
+            }
+        });
+    };
     ElementLoader.prototype.load = function () {
         return this._load();
     };
@@ -230,6 +245,7 @@ var ElementLoader = (function (_super) {
         var _this = this;
         this.createDom();
         var el = this.el;
+        this.appendAttributes(el);
         var onLoadFn, onErrorFn;
         var promise = new Promise(function (resolve, reject) {
             onLoadFn = wrapperFn(resolve);
@@ -280,9 +296,9 @@ var JsLoader = (function (_super) {
         document.head.appendChild(el);
     };
     JsLoader.prototype.createDom = function () {
-        this.el = document.createElement('script');
-        this.el.setAttribute('crossorigin', 'anonymous');
-        this.el.src = this.finalURL();
+        var el = document.createElement('script');
+        el.src = this.finalURL();
+        this.el = el;
     };
     JsLoader.prototype.load = function (force) {
         if (force === void 0) { force = false; }
@@ -737,9 +753,12 @@ var ResourceLoader = (function () {
             if (!loaderFn) {
                 throw new Error('resource type is not support !');
             }
+            var params = Object.assign({}, _this.option.params);
+            Object.assign(params, resource.params);
             var loader = new loaderFn({
                 url: _url,
-                params: _this.option.params,
+                params: params,
+                attributes: resource.attributes,
                 timeout: resource.timeout
             });
             return loader;
@@ -1588,6 +1607,7 @@ function load(module) {
     if (_resource.js.length > 0) {
         resources.push({
             type: 'js',
+            attributes: _resource.attributes,
             serial: _resource.jsSerial,
             urls: Module.ensureArray(_resource.js)
         });
@@ -1595,6 +1615,7 @@ function load(module) {
     if (_resource.css.length > 0) {
         resources.push({
             type: 'css',
+            attributes: _resource.attributes,
             serial: _resource.cssSerial,
             urls: Module.ensureArray(_resource.css)
         });
@@ -1787,10 +1808,11 @@ var Resource = (function (_super) {
     function Resource(resource) {
         this.js = [];
         this.css = [];
+        this.attributes = {};
         this.langFiles = [];
         this.jsSerial = false;
         this.cssSerial = false;
-        this.assign(['js', 'css', 'jsSerial', 'cssSerial', 'langFiles'], resource);
+        this.assign(['js', 'css', 'jsSerial', 'cssSerial', 'langFiles', 'attributes'], resource);
     }
     return Resource;
 }(Class));
