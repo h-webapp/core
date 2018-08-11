@@ -1613,10 +1613,16 @@ function load(module) {
         baseURI: moduleLoader.baseURI()
     });
     promises.push(moduleLoader.loadLangResource());
-    var p = Promise.all(promises);
-    p = p.then(function () {
-        return loader.load(resources);
-    });
+    var p;
+    if (module.parallel === true) {
+        promises.push(loader.load(resources));
+        p = Promise.all(promises);
+    }
+    else {
+        p = Promise.all(promises).then(function () {
+            return loader.load(resources);
+        });
+    }
     return p;
 }
 function parseLangFile(file) {
@@ -1850,6 +1856,7 @@ var Module = (function (_super) {
     __extends(Module, _super);
     function Module() {
         this.description = '';
+        this.parallel = true;
         this._readyListeners = [];
         Injector.apply(this, arguments);
         defineProperty(this, 'langResource', LangResource);

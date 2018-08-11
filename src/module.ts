@@ -43,6 +43,7 @@ var readyKey = Symbol('readyKey');
 class Module extends Injector{
     moduleName:String;
     description = '';
+    parallel = true;
     langResource:LangResource;
     resource:Resource;
     _readyListeners:Function[] = [];

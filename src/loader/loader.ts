@@ -57,10 +57,16 @@ function load(module:Module){
         baseURI:moduleLoader.baseURI()
     });
     promises.push(moduleLoader.loadLangResource());
-    var p = Promise.all(promises);
-    p = p.then(function () {
-        return loader.load(resources);
-    });
+    var p;
+    if(module.parallel === true){
+        promises.push(loader.load(resources));
+        p = Promise.all(promises);
+    }else{
+        p = Promise.all(promises).then(function () {
+            return loader.load(resources);
+        });
+    }
+
     return p;
 }
 function parseLangFile(file){

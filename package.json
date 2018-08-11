@@ -1,6 +1,6 @@
 {
   "name": "webapp-core",
-  "version": "1.0.39",
+  "version": "1.0.40",
   "description": "webapp",
   "files": [
     "build"
@@ -19,7 +19,8 @@
     "rollup-plugin-uglify": "^1.0.1",
     "ruby": "^0.6.1",
     "scss": "^0.2.4",
-    "uglifycss": "0.0.27"
+    "uglifycss": "0.0.27",
+    "uglifyjs": "^2.4.11"
   },
   "repository": {
     "type": "git",
