@@ -102,7 +102,7 @@
 ```
 4. 应用加载
 ```javascript
-    Module.module('user').load().then(function(){
+    Application.app('user').load().then(function(){
             
     });
 ```    
